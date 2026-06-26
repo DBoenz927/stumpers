@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║              BUMPER STUMPERS - Birthday Edition              ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║  GITHUB PAGES SETUP (one-time, ~5 minutes):                 ║
+  ║  1. Create a new public repo on github.com (e.g. "stumpers")║
+  ║  2. Upload this file as "index.html" to that repo           ║
+  ║  3. Settings → Pages → Branch: main → Save                  ║
+  ║  4. Your URL: https://[you].github.io/[repo]/               ║
+  ║                                                              ║
+  ║  HOW TO PLAY EACH ROUND:                                     ║
+  ║  1. Open the URL on your Fire Cube (Silk Browser)           ║
+  ║  2. Tap  "📺 I'm the Display"                               ║
+  ║  3. A QR code appears — scan it with your Android phone     ║
+  ║  4. Phone becomes the controller. Start playing!            ║
+  ║                                                              ║
+  ║  NO SERVER NEEDED — uses free WebRTC peer-to-peer sync      ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bumper Stumpers 🚗</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg:       #0d0d1a;
+      --surface:  #1a1a2e;
+      --surface2: #16213e;
+      --accent:   #e94560;
+      --gold:     #f5c842;
+      --easy:     #2ecc71;
+      --medium:   #f39c12;
+      --hard:     #e74c3c;
+      --text:     #ffffff;
+      --dim:      #8888aa;
+      --plate-bg: #f2ead8;
+      --plate-bd: #2c3e50;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Oswald', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SHARED UTILITIES ─────────────────────────────── */
+    .hidden { display: none !important; }
+    .btn {
+      display: block; width: 100%;
+      padding: .8rem 1rem;
+      border: none; border-radius: 10px;
+      font-family: 'Oswald', sans-serif; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; text-transform: uppercase; letter-spacing: .06em;
+      transition: transform .1s, opacity .2s;
+    }
+    .btn:active  { transform: scale(.96); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-red    { background: var(--accent);  color: #fff; }
+    .btn-gold   { background: var(--gold);    color: #111; }
+    .btn-green  { background: var(--easy);    color: #fff; }
+    .btn-orange { background: var(--medium);  color: #fff; }
+    .btn-gray   { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,.15); }
+    .btn-danger { background: var(--hard);    color: #fff; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; }
+
+    /* ── LICENSE PLATE ────────────────────────────────── */
+    .plate-wrap {
+      display: flex; justify-content: center;
+    }
+    .license-plate {
+      position: relative;
+      background: var(--plate-bg);
+      border: 10px solid var(--plate-bd);
+      border-radius: 14px;
+      padding: 1.4rem 3rem 1.6rem;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,.25), 0 10px 50px rgba(0,0,0,.6);
+      text-align: center;
+      min-width: min(70vw, 600px);
+    }
+    .license-plate::after {
+      content: '';
+      position: absolute; inset: 8px;
+      border: 2px solid rgba(0,0,0,.18);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .plate-state-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(.6rem, 1.8vw, .85rem);
+      color: #555; letter-spacing: .35em; text-transform: uppercase;
+      margin-bottom: .25rem;
+    }
+    .plate-chars {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(2.4rem, 7vw, 5.5rem);
+      font-weight: 900; color: #1a1a2e;
+      letter-spacing: .12em; text-transform: uppercase;
+      line-height: 1; user-select: none;
+    }
+    .bolt {
+      position: absolute; width: 20px; height: 20px;
+      background: radial-gradient(circle at 35% 35%, #ccc, #777);
+      border-radius: 50%; box-shadow: inset 0 1px 3px rgba(0,0,0,.5);
+    }
+    .bolt-tl { top: 10px; left: 10px; }
+    .bolt-tr { top: 10px; right: 10px; }
+    .bolt-bl { bottom: 10px; left: 10px; }
+    .bolt-br { bottom: 10px; right: 10px; }
+
+    /* diff badge */
+    .diff-badge {
+      display: inline-block; padding: .3rem 1.2rem;
+      border-radius: 20px; font-size: .95rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em; margin-top: .6rem;
+    }
+    .diff-easy   { background: var(--easy);   color: #fff; }
+    .diff-medium { background: var(--medium); color: #fff; }
+    .diff-hard   { background: var(--hard);   color: #fff; }
+
+    /* ── LANDING PAGE ─────────────────────────────────── */
+    #landing {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem; text-align: center; gap: 1.5rem;
+    }
+    #landing h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 12vw, 7rem);
+      color: var(--gold);
+      text-shadow: 4px 4px 0 #c0392b, 0 0 40px rgba(245,200,66,.4);
+      letter-spacing: .12em; line-height: 1;
+    }
+    #landing p { font-size: 1.1rem; color: var(--dim); max-width: 400px; }
+    .landing-btns { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+    .landing-btn {
+      padding: 1.4rem 2.5rem;
+      font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      letter-spacing: .06em; transition: transform .15s, box-shadow .15s;
+    }
+    .landing-btn:hover  { transform: translateY(-3px); }
+    .landing-btn:active { transform: scale(.96); }
+    .landing-btn.tv  { background: linear-gradient(135deg,#e94560,#c0392b); color:#fff; box-shadow:0 6px 24px rgba(233,69,96,.45); }
+    .landing-btn.ctl { background: linear-gradient(135deg,#f5c842,#e67e22); color:#111; box-shadow:0 6px 24px rgba(245,200,66,.45); }
+    .landing-demo-plate { pointer-events: none; }
+
+    /* ── DISPLAY MODE ─────────────────────────────────── */
+    #display {
+      display: none; flex-direction: column;
+      min-height: 100vh; padding: 1rem 1.5rem; gap: 1rem;
+    }
+    .disp-header {
+      text-align: center; padding: .5rem 0;
+    }
+    .disp-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 5.5vw, 3.5rem);
+      color: var(--gold); text-shadow: 2px 2px 0 #c0392b;
+      letter-spacing: .18em;
+    }
+    .disp-game {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.2rem;
+    }
+
+    /* Timer */
+    .timer-ring {
+      position: relative; width: 100px; height: 100px;
+    }
+    .timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-track { fill: none; stroke: #333; stroke-width: 8; }
+    .timer-fill  { fill: none; stroke: var(--easy); stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 283; stroke-dashoffset: 0;
+      transition: stroke-dashoffset .9s linear, stroke .3s;
+    }
+    .timer-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 700;
+    }
+    .timer-text.urgent { color: var(--hard); }
+
+    /* Answer area */
+    .answer-area { text-align: center; min-height: 70px; }
+    .answer-label { font-size: .9rem; color: var(--dim); letter-spacing: .2em; text-transform: uppercase; }
+    .answer-text {
+      font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 700; color: var(--gold);
+      animation: pop .35s cubic-bezier(.175,.885,.32,1.275);
+    }
+    @keyframes pop {
+      from { transform: scale(.4); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+
+    /* Scores bar */
+    .scores-bar {
+      display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center;
+    }
+    .score-card {
+      background: var(--surface); border: 2px solid rgba(255,255,255,.1);
+      border-radius: 12px; padding: .7rem 1.4rem; text-align: center; min-width: 120px;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .score-card.buzz {
+      border-color: var(--gold); box-shadow: 0 0 24px rgba(245,200,66,.5);
+      animation: shake .45s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)}
+    }
+    .score-name  { font-size: .8rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
+    .score-value { font-size: 2rem; font-weight: 700; color: var(--gold); }
+
+    /* Plate counter */
+    .plate-count { font-size: .9rem; color: var(--dim); }
+
+    /* Connection waiting */
+    #disp-waiting {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; gap: 1.2rem; padding: 2rem; text-align: center;
+    }
+    #disp-waiting h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(1.8rem,5vw,2.8rem); color: var(--gold); letter-spacing: .1em;
+    }
+    #qrcode { background: #fff; padding: 12px; border-radius: 10px; }
+    .peer-code {
+      font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
+      color: var(--accent); background: var(--surface);
+      padding: .4rem 1rem; border-radius: 8px; letter-spacing: .15em;
+    }
+    .disp-hint { font-size: .9rem; color: var(--dim); max-width: 340px; }
+
+    /* Game Over overlay (display) */
+    #disp-gameover {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.92);
+      flex-direction: column; align-items: center; justify-content: center;
+      z-index: 200; gap: 1rem; padding: 2rem; text-align: center;
+    }
+    #disp-gameover h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem,12vw,7rem); color: var(--gold);
+      text-shadow: 4px 4px 0 #c0392b, 0 0 60px rgba(245,200,66,.9);
+      animation: pulse-glow 1.2s ease infinite alternate;
+    }
+    @keyframes pulse-glow {
+      from { text-shadow: 4px 4px 0 #c0392b, 0 0 20px rgba(245,200,66,.5); }
+      to   { text-shadow: 4px 4px 0 #c0392b, 0 0 80px rgba(245,200,66,1);  }
+    }
+    .go-score-list { display: flex; flex-direction: column; gap: .5rem; }
+    .go-score-row  { font-size: 1.6rem; }
+    .go-score-row.winner { font-size: 2.2rem; color: var(--gold); }
+
+    /* ── CONTROL MODE ─────────────────────────────────── */
+    #control {
+      display: none; flex-direction: column;
+      min-height: 100vh; max-width: 480px; margin: 0 auto; padding: .8rem; gap: .7rem;
+    }
+    #ctrl-waiting {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem; gap: 1.5rem; text-align: center;
+    }
+    #ctrl-waiting h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem; color: var(--gold);
+    }
+    .connect-input {
+      background: var(--surface); border: 2px solid rgba(255,255,255,.25);
+      border-radius: 10px; padding: .8rem; color: #fff;
+      font-family: 'Share Tech Mono', monospace; font-size: 1.2rem;
+      width: 100%; max-width: 320px; text-align: center; letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .connect-input::placeholder { color: var(--dim); text-transform: none; }
+
+    .ctrl-header { text-align: center; padding-bottom: .6rem; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .ctrl-title  { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--gold); letter-spacing: .12em; }
+    .conn-badge  {
+      display: inline-block; padding: .15rem .6rem;
+      border-radius: 10px; font-size: .75rem; font-weight: 700; text-transform: uppercase;
+    }
+    .conn-ok   { background: var(--easy);   color: #fff; }
+    .conn-bad  { background: var(--hard);   color: #fff; }
+    .conn-wait { background: var(--medium); color: #fff; }
+
+    .ctrl-card {
+      background: var(--surface); border-radius: 12px; padding: .8rem;
+    }
+    .ctrl-card-label {
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .15em;
+      color: var(--dim); margin-bottom: .6rem;
+    }
+
+    /* Mini plate */
+    .mini-plate {
+      background: var(--plate-bg); color: #1a1a2e;
+      border: 3px solid var(--plate-bd); border-radius: 8px;
+      padding: .5rem 1rem; text-align: center;
+      font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
+      font-weight: 900; letter-spacing: .1em;
+    }
+
+    /* Answer box */
+    .answer-box {
+      background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.3);
+      border-radius: 8px; padding: .6rem; text-align: center;
+      font-size: 1.1rem; font-weight: 600; color: var(--gold);
+      min-height: 2.5rem; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Teams */
+    .team-row {
+      display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem;
+    }
+    .team-name-inp {
+      flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+      border-radius: 8px; padding: .35rem .6rem; color: #fff;
+      font-family: 'Oswald', sans-serif; font-size: 1rem;
+    }
+    .team-score-disp { font-size: 1.3rem; font-weight: 700; color: var(--gold); min-width: 52px; text-align: center; }
+    .sc-btn {
+      width: 34px; height: 34px; border: none; border-radius: 50%;
+      font-size: 1.1rem; font-weight: 900; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .sc-plus  { background: var(--easy);   color: #fff; }
+    .sc-minus { background: var(--hard);   color: #fff; }
+    .sc-buzz  { background: var(--gold);   color: #111; }
+    .pt-chip {
+      font-size: .7rem; background: rgba(255,255,255,.1);
+      border-radius: 8px; padding: .15rem .4rem; color: var(--dim);
+    }
+
+    /* Timer control */
+    .timer-ctrl-row {
+      display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem;
+    }
+    .timer-ctrl-row input[type=range] {
+      flex: 1; accent-color: var(--accent); height: 6px; cursor: pointer;
+    }
+    .timer-val { font-size: 1rem; font-weight: 700; color: var(--gold); min-width: 40px; }
+    .timer-count-big {
+      font-size: 2.5rem; font-weight: 700; text-align: center;
+      color: var(--easy); transition: color .3s;
+    }
+    .timer-count-big.urgent { color: var(--hard); }
+
+    /* Plate list */
+    .plate-scroll { max-height: 200px; overflow-y: auto; margin-top: .4rem; }
+    .plate-item {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .35rem .5rem; border-radius: 8px; cursor: pointer;
+      transition: background .15s;
+    }
+    .plate-item:hover  { background: rgba(255,255,255,.07); }
+    .plate-item.active { background: rgba(245,200,66,.15); }
+    .plate-item-text { font-family: 'Share Tech Mono', monospace; font-size: .9rem; flex: 1; }
+    .plate-item-pts  { font-size: .75rem; color: var(--dim); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-easy   { background: var(--easy);   }
+    .dot-medium { background: var(--medium); }
+    .dot-hard   { background: var(--hard);   }
+
+    /* Confetti */
+    .confetti {
+      position: fixed; pointer-events: none;
+      width: 10px; height: 14px; opacity: 0;
+      animation: fall 3.5s ease-in forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-30px) rotate(0deg); opacity:1; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity:0; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ LANDING ══════════════ -->
+<div id="landing">
+  <h1>Bumper<br>Stumpers</h1>
+  <p>Decode the vanity license plate — say the phrase to score!</p>
+  <div class="plate-wrap landing-demo-plate">
+    <div class="license-plate" style="min-width:unset; padding:1rem 2rem;">
+      <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+      <div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+      <div class="plate-state-label">Stumpers County</div>
+      <div class="plate-chars">10SNE1</div>
+    </div>
+  </div>
+  <div class="landing-btns">
+    <button class="landing-btn tv"  onclick="goDisplay()">📺 I'm the Display (TV)</button>
+    <button class="landing-btn ctl" onclick="goControl()">🎮 I'm the Controller (Phone)</button>
+  </div>
+  <p style="font-size:.8rem; color:var(--dim);">
+    Open this URL on your Fire Cube → tap Display.<br>
+    Open on your Android → tap Controller, scan the QR.
+  </p>
+</div>
+
+<!-- ══════════════ DISPLAY MODE ══════════════ -->
+<div id="display">
+
+  <!-- Waiting for controller -->
+  <div id="disp-waiting">
+    <h2>Waiting for Controller…</h2>
+    <p class="disp-hint">Scan this QR code with your Android phone to become the game host.</p>
+    <div id="qrcode"></div>
+    <div>
+      <div style="font-size:.8rem;color:var(--dim);margin-bottom:.3rem;">Or type this code in the Controller:</div>
+      <div class="peer-code" id="peer-id-display">Connecting…</div>
+    </div>
+    <p class="disp-hint" style="margin-top:.5rem;">⚡ Uses free WebRTC — no accounts needed</p>
+  </div>
+
+  <!-- Main game display -->
+  <div id="disp-game" class="hidden">
+    <div class="disp-header">
+      <div class="disp-title">Bumper Stumpers</div>
+    </div>
+    <div class="disp-game">
+      <div class="plate-count" id="disp-plate-count">Plate 1 of 30</div>
+
+      <div class="plate-wrap">
+        <div class="license-plate" id="disp-plate">
+          <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+          <div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+          <div class="plate-state-label">Stumpers County</div>
+          <div class="plate-chars" id="disp-plate-chars">GR8DAY</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:1.5rem;justify-content:center;flex-wrap:wrap;">
+        <span class="diff-badge" id="disp-diff">EASY</span>
+        <div class="timer-ring">
+          <svg class="timer-svg" viewBox="0 0 100 100">
+            <circle class="timer-track" cx="50" cy="50" r="45"/>
+            <circle class="timer-fill" id="disp-timer-ring" cx="50" cy="50" r="45"/>
+          </svg>
+          <div class="timer-text" id="disp-timer-text">30</div>
+        </div>
+        <span style="font-size:1.1rem;color:var(--gold);font-weight:700;" id="disp-pts">100 pts</span>
+      </div>
+
+      <div class="answer-area" id="disp-answer-area" style="display:none;">
+        <div class="answer-label">Answer</div>
+        <div class="answer-text" id="disp-answer-text"></div>
+      </div>
+
+      <div class="scores-bar" id="disp-scores"></div>
+    </div>
+  </div>
+
+  <!-- Game over overlay -->
+  <div id="disp-gameover">
+    <h1>🏆 Game Over!</h1>
+    <div class="go-score-list" id="disp-go-scores"></div>
+    <div style="font-size:1rem;color:var(--dim);margin-top:.5rem;">Controller can start a new game</div>
+  </div>
+
+</div><!-- #display -->
+
+
+<!-- ══════════════ CONTROL MODE ══════════════ -->
+<div id="control">
+
+  <!-- Waiting to connect -->
+  <div id="ctrl-waiting">
+    <h2>🎮 Controller Setup</h2>
+    <p style="color:var(--dim);font-size:.95rem;">Enter the code shown on the TV screen:</p>
+    <input class="connect-input" id="ctrl-peer-input" type="text" placeholder="Paste code here…" autocomplete="off" autocapitalize="characters">
+    <button class="btn btn-gold" style="max-width:320px;" onclick="connectToDisplay()">Connect to Display →</button>
+    <p style="font-size:.8rem;color:var(--dim);">Or scan the QR on the TV with your camera app.</p>
+  </div>
+
+  <!-- Game controller UI -->
+  <div id="ctrl-game" class="hidden">
+
+    <div class="ctrl-header">
+      <div class="ctrl-title">Bumper Stumpers &nbsp;
+        <span class="conn-badge" id="ctrl-conn-badge">⏳ Connecting</span>
+      </div>
+    </div>
+
+    <!-- Current plate preview -->
+    <div class="ctrl-card">
+      <div class="ctrl-card-label">Current Plate</div>
+      <div class="mini-plate" id="ctrl-mini-plate">GR8DAY</div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.4rem;flex-wrap:wrap;">
+        <span class="diff-badge" id="ctrl-diff" style="font-size:.8rem;padding:.2rem .8rem;">Easy</span>
+        <span class="pt-chip" id="ctrl-pts">100 pts</span>
+        <span class="plate-count" id="ctrl-count" style="margin-left:auto;">1 / 30</span>
+      </div>
+      <!-- Answer (visible to host only) -->
+      <div class="answer-box" id="ctrl-answer" style="margin-top:.5rem;">Great Day</div>
+    </div>
+
+    <!-- Answer + nav -->
+    <div class="ctrl-card">
+      <div class="ctrl-card-label">Controls</div>
+      <div class="row2" style="margin-bottom:.5rem;">
+        <button class="btn btn-gray" onclick="prevPlate()">⬅ Prev</button>
+        <button class="btn btn-gray" onclick="nextPlate()">Next ➡</button>
+      </div>
+      <div class="row2">
+        <button class="btn btn-red"   id="ctrl-reveal-btn" onclick="toggleReveal()">👁 Reveal Answer</button>
+        <button class="btn btn-gray"  onclick="shufflePlates()">🔀 Shuffle</button>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div class="ctrl-card">
+      <div class="ctrl-card-label">Timer</div>
+      <div class="timer-count-big" id="ctrl-timer-big">30</div>
+      <div class="timer-ctrl-row">
+        <span style="font-size:.8rem;color:var(--dim);">Duration</span>
+        <input type="range" id="timer-dur-slider" min="10" max="60" step="5" value="30" oninput="changeDuration(this.value)">
+        <span class="timer-val" id="timer-dur-val">30s</span>
+      </div>
+      <div class="row3">
+        <button class="btn btn-green"  id="ctrl-timer-btn" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn btn-orange" onclick="resetTimer()">⟳ Reset</button>
+        <button class="btn btn-gray"   onclick="skipTimer()">⏭ Skip</button>
+      </div>
+    </div>
+
+    <!-- Teams & Scores -->
+    <div class="ctrl-card">
+      <div class="ctrl-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Teams &amp; Scores</span>
+        <button onclick="addTeam()" style="background:none;border:1px solid var(--dim);color:var(--dim);padding:.1rem .5rem;border-radius:6px;cursor:pointer;font-size:.75rem;">+ Add Team</button>
+      </div>
+      <div id="ctrl-teams"></div>
+      <div style="margin-top:.4rem; font-size:.75rem; color:var(--dim);">
+        Tap <span style="background:var(--gold);color:#111;padding:0 4px;border-radius:4px;">⚡</span> to buzz in &amp; award full points for current plate.
+      </div>
+    </div>
+
+    <!-- Plate list -->
+    <div class="ctrl-card">
+      <div class="ctrl-card-label">All Plates (tap to jump)</div>
+      <div class="plate-scroll" id="ctrl-plate-list"></div>
+    </div>
+
+    <!-- End game -->
+    <div style="padding:.4rem 0 1.5rem;">
+      <button class="btn btn-danger" onclick="endGame()">🏆 End Game &amp; Show Winner</button>
+    </div>
+
+  </div><!-- #ctrl-game -->
+</div><!-- #control -->
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   GAME DATA — 30 Vanity Plates
+   ═══════════════════════════════════════════════════════════ */
+const ALL_PLATES = [
+  // ── EASY (100 pts) ───────────────────────────────────────
+  { plate:'GR8DAY',     answer:'Great Day',                difficulty:'easy',   points:100 },
+  { plate:'2COOL4U',    answer:'Too Cool for You',          difficulty:'easy',   points:100 },
+  { plate:'ILUVU',      answer:'I Love You',                difficulty:'easy',   points:100 },
+  { plate:'BDAY4U',     answer:'Birthday for You',          difficulty:'easy',   points:100 },
+  { plate:'H8MONDY',    answer:'Hate Monday',               difficulty:'easy',   points:100 },
+  { plate:'GR8MOM',     answer:'Great Mom',                 difficulty:'easy',   points:100 },
+  { plate:'LUVPZA',     answer:'Love Pizza',                difficulty:'easy',   points:100 },
+  { plate:'4EVRYNG',    answer:'Forever Young',             difficulty:'easy',   points:100 },
+  { plate:'WKND',       answer:'Weekend',                   difficulty:'easy',   points:100 },
+  { plate:'FUNDAY',     answer:'Fun Day',                   difficulty:'easy',   points:100 },
+  // ── MEDIUM (200 pts) ─────────────────────────────────────
+  { plate:'10SNE1',     answer:'Tennis Anyone?',            difficulty:'medium', points:200 },
+  { plate:'XLNT',       answer:'Excellent',                 difficulty:'medium', points:200 },
+  { plate:'NVRQT',      answer:'Never Quit',                difficulty:'medium', points:200 },
+  { plate:'IN2MZK',     answer:'Into Music',                difficulty:'medium', points:200 },
+  { plate:'LKNG4LV',    answer:'Looking for Love',          difficulty:'medium', points:200 },
+  { plate:'4TUNAT',     answer:'Fortunate',                 difficulty:'medium', points:200 },
+  { plate:'URSPCL',     answer:'You Are Special',           difficulty:'medium', points:200 },
+  { plate:'B4ITSLAT',   answer:"Before It's Late",          difficulty:'medium', points:200 },
+  { plate:'AWESUM',     answer:'Awesome',                   difficulty:'medium', points:200 },
+  { plate:'LETSG0',     answer:"Let's Go",                  difficulty:'medium', points:200 },
+  // ── HARD (300 pts) ───────────────────────────────────────
+  { plate:'WYSIWYG',    answer:'What You See Is What You Get', difficulty:'hard', points:300 },
+  { plate:'2THDR',      answer:'Tooth Doctor',              difficulty:'hard',   points:300 },
+  { plate:'ICUQT',      answer:'I See You Cutie',           difficulty:'hard',   points:300 },
+  { plate:'UB4ME',      answer:'You Before Me',             difficulty:'hard',   points:300 },
+  { plate:'IMASTR',     answer:"I'm a Star",                difficulty:'hard',   points:300 },
+  { plate:'GRTFL',      answer:'Grateful',                  difficulty:'hard',   points:300 },
+  { plate:'NXTLVL',     answer:'Next Level',                difficulty:'hard',   points:300 },
+  { plate:'LIVLAFLUV',  answer:'Live Laugh Love',           difficulty:'hard',   points:300 },
+  { plate:'XTRA MIL',   answer:'Extra Mile',                difficulty:'hard',   points:300 },
+  { plate:'WNRWNR',     answer:'Winner Winner Chicken Dinner', difficulty:'hard', points:300 },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   AUDIO  (Web Audio API — no external files)
+   ═══════════════════════════════════════════════════════════ */
+let _actx = null;
+function actx() {
+  if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+  return _actx;
+}
+function tone(freq, dur, vol=.25, type='sine', delay=0) {
+  const c = actx();
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  o.connect(g); g.connect(c.destination);
+  const t = c.currentTime + delay;
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.start(t); o.stop(t + dur + .05);
+}
+const SFX = {
+  correct:  () => { tone(523,.15,.3,'sine',0); tone(659,.15,.3,'sine',.12); tone(784,.3,.3,'sine',.24); },
+  reveal:   () => { tone(440,.12,.2,'sine',0); tone(550,.12,.2,'sine',.1); tone(660,.25,.2,'sine',.2); },
+  buzz:     () => { tone(160,.5,.35,'sawtooth'); },
+  timeup:   () => { [440,330,220].forEach((f,i)=>tone(f,.25,.3,'sawtooth',i*.2)); },
+  tick:     () => { tone(880,.05,.1,'square'); },
+  win:      () => { [523,659,784,1047,1319].forEach((f,i)=>tone(f,.3,.3,'sine',i*.12)); },
+  next:     () => { tone(440,.08,.15,'sine'); },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   GAME STATE  (lives on controller, pushed to display)
+   ═══════════════════════════════════════════════════════════ */
+let GS = {
+  order:          [], // shuffled indices into ALL_PLATES
+  idx:            0,
+  answerRevealed: false,
+  timerRunning:   false,
+  timeRemaining:  30,
+  timerDuration:  30,
+  teams:          [{ name:'Team 1', score:0 }, { name:'Team 2', score:0 }],
+  gameOver:       false,
+  buzzTeam:       -1,  // index of team that just buzzed, -1 = none
+};
+
+function currentPlate() { return ALL_PLATES[GS.order[GS.idx]]; }
+
+function freshOrder() {
+  GS.order = ALL_PLATES.map((_,i)=>i);
+  GS.idx = 0; GS.answerRevealed = false;
+  GS.timerRunning = false; GS.timeRemaining = GS.timerDuration;
+  GS.gameOver = false; GS.buzzTeam = -1;
+}
+function shufflePlates() {
+  for (let i=GS.order.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [GS.order[i],GS.order[j]]=[GS.order[j],GS.order[i]];
+  }
+  GS.idx = 0; GS.answerRevealed = false;
+  GS.timerRunning = false; GS.timeRemaining = GS.timerDuration;
+  GS.buzzTeam = -1;
+  push();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PEER / NETWORKING
+   ═══════════════════════════════════════════════════════════ */
+let myPeer   = null;
+let conn     = null;   // the open DataChannel
+let isDisplay = false;
+
+function push() {
+  if (conn && conn.open) conn.send(JSON.stringify(GS));
+  renderControl();
+}
+
+function handleRemoteState(raw) {
+  GS = JSON.parse(raw);
+  renderDisplay();
+}
+
+/* Display side */
+function startDisplayPeer() {
+  myPeer = new Peer({ debug: 0 });
+  myPeer.on('open', id => {
+    document.getElementById('peer-id-display').textContent = id.toUpperCase();
+    const base = window.location.origin + window.location.pathname;
+    const ctrlURL = `${base}?mode=control&peer=${encodeURIComponent(id)}`;
+    new QRCode(document.getElementById('qrcode'), {
+      text: ctrlURL, width: 200, height: 200,
+      colorDark:'#000', colorLight:'#fff',
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  });
+  myPeer.on('connection', c => {
+    conn = c;
+    c.on('data', handleRemoteState);
+    c.on('open', () => {
+      document.getElementById('disp-waiting').classList.add('hidden');
+      document.getElementById('disp-game').classList.remove('hidden');
+    });
+    c.on('close', () => {
+      document.getElementById('disp-waiting').classList.remove('hidden');
+      document.getElementById('disp-game').classList.add('hidden');
+    });
+  });
+  myPeer.on('error', e => console.warn('Peer error:', e));
+}
+
+/* Controller side */
+function startControlPeer(peerId) {
+  myPeer = new Peer({ debug: 0 });
+  myPeer.on('open', () => {
+    conn = myPeer.connect(peerId.toLowerCase().trim());
+    conn.on('open', () => {
+      document.getElementById('ctrl-waiting').classList.add('hidden');
+      document.getElementById('ctrl-game').classList.remove('hidden');
+      document.getElementById('ctrl-conn-badge').textContent = '● Connected';
+      document.getElementById('ctrl-conn-badge').className = 'conn-badge conn-ok';
+      freshOrder();
+      push();
+    });
+    conn.on('close', () => {
+      document.getElementById('ctrl-conn-badge').textContent = '✕ Disconnected';
+      document.getElementById('ctrl-conn-badge').className = 'conn-badge conn-bad';
+    });
+    conn.on('error', e => console.warn('Conn error:', e));
+  });
+  myPeer.on('error', e => {
+    alert('Could not connect. Check the code and try again.\n\n'+e.type);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME ACTIONS  (run on controller, then push)
+   ═══════════════════════════════════════════════════════════ */
+let timerInterval = null;
+
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    if (GS.timeRemaining <= 0) {
+      stopTimer();
+      SFX.timeup();
+      return;
+    }
+    GS.timeRemaining--;
+    if (GS.timeRemaining <= 5) SFX.tick();
+    push();
+  }, 1000);
+  GS.timerRunning = true;
+  push();
+}
+function stopTimer() {
+  clearInterval(timerInterval); timerInterval = null;
+  GS.timerRunning = false;
+  push();
+}
+function resetTimer() {
+  stopTimer();
+  GS.timeRemaining = GS.timerDuration;
+  push();
+}
+function skipTimer() {
+  stopTimer();
+  GS.timeRemaining = 0;
+  push();
+}
+function toggleTimer() {
+  if (GS.timerRunning) stopTimer(); else startTimer();
+}
+function changeDuration(v) {
+  GS.timerDuration = parseInt(v);
+  document.getElementById('timer-dur-val').textContent = v+'s';
+  if (!GS.timerRunning) { GS.timeRemaining = GS.timerDuration; push(); }
+}
+function nextPlate() {
+  if (GS.idx >= GS.order.length-1) return;
+  stopTimer();
+  GS.idx++; GS.answerRevealed = false;
+  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
+  SFX.next();
+  push();
+}
+function prevPlate() {
+  if (GS.idx <= 0) return;
+  stopTimer();
+  GS.idx--; GS.answerRevealed = false;
+  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
+  push();
+}
+function jumpToPlate(i) {
+  stopTimer();
+  GS.idx = i; GS.answerRevealed = false;
+  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
+  push();
+}
+function toggleReveal() {
+  GS.answerRevealed = !GS.answerRevealed;
+  if (GS.answerRevealed) { stopTimer(); SFX.reveal(); }
+  push();
+}
+function addTeam() {
+  if (GS.teams.length >= 6) return;
+  GS.teams.push({ name:`Team ${GS.teams.length+1}`, score:0 });
+  push();
+}
+function removeTeam(i) {
+  if (GS.teams.length <= 1) return;
+  GS.teams.splice(i,1);
+  push();
+}
+function changeScore(i, delta) {
+  GS.teams[i].score = Math.max(0, GS.teams[i].score + delta);
+  push();
+}
+function buzz(i) {
+  // Award full plate points, buzz highlight
+  stopTimer();
+  GS.teams[i].score += currentPlate().points;
+  GS.buzzTeam = i;
+  GS.answerRevealed = true;
+  SFX.correct();
+  push();
+}
+function updateTeamName(i, val) {
+  GS.teams[i].name = val;
+  push();
+}
+function endGame() {
+  if (!confirm('End the game and show final scores?')) return;
+  stopTimer();
+  GS.gameOver = true;
+  SFX.win();
+  push();
+  showConfetti();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER — DISPLAY SIDE
+   ═══════════════════════════════════════════════════════════ */
+function renderDisplay() {
+  if (!isDisplay) return;
+  const p = currentPlate();
+
+  document.getElementById('disp-plate-chars').textContent = p.plate;
+  document.getElementById('disp-plate-count').textContent =
+    `Plate ${GS.idx+1} of ${GS.order.length}`;
+
+  const db = document.getElementById('disp-diff');
+  db.textContent = p.difficulty.toUpperCase() + ' — ' + p.points + ' PTS';
+  db.className = 'diff-badge diff-' + p.difficulty;
+
+  document.getElementById('disp-pts').textContent = '';
+
+  // Timer ring
+  const circ = 2*Math.PI*45;  // 283
+  const pct = GS.timerDuration > 0 ? GS.timeRemaining/GS.timerDuration : 0;
+  const fill = document.getElementById('disp-timer-ring');
+  fill.style.strokeDashoffset = circ*(1-pct);
+  fill.style.stroke = GS.timeRemaining<=5 ? '#e74c3c' : GS.timeRemaining<=10 ? '#f39c12' : '#2ecc71';
+  const tt = document.getElementById('disp-timer-text');
+  tt.textContent = GS.timeRemaining;
+  tt.className = 'timer-text' + (GS.timeRemaining<=5 ? ' urgent' : '');
+
+  // Answer
+  const aa = document.getElementById('disp-answer-area');
+  const at = document.getElementById('disp-answer-text');
+  if (GS.answerRevealed) {
+    aa.style.display = '';
+    at.textContent = p.answer;
+  } else {
+    aa.style.display = 'none';
+  }
+
+  // Scores
+  const sb = document.getElementById('disp-scores');
+  sb.innerHTML = '';
+  GS.teams.forEach((t,i) => {
+    const c = document.createElement('div');
+    c.className = 'score-card' + (GS.buzzTeam===i ? ' buzz' : '');
+    c.innerHTML = `<div class="score-name">${escHtml(t.name)}</div><div class="score-value">${t.score}</div>`;
+    sb.appendChild(c);
+  });
+
+  // Game over
+  const go = document.getElementById('disp-gameover');
+  if (GS.gameOver) {
+    go.style.display = 'flex';
+    const sorted = [...GS.teams].sort((a,b)=>b.score-a.score);
+    const gl = document.getElementById('disp-go-scores');
+    gl.innerHTML = sorted.map((t,i)=>
+      `<div class="go-score-row${i===0?' winner':''}">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}<b>${escHtml(t.name)}</b> — ${t.score} pts</div>`
+    ).join('');
+    showConfetti();
+  } else {
+    go.style.display = 'none';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER — CONTROL SIDE
+   ═══════════════════════════════════════════════════════════ */
+function renderControl() {
+  if (isDisplay) return;
+  const p = currentPlate();
+
+  document.getElementById('ctrl-mini-plate').textContent = p.plate;
+  document.getElementById('ctrl-answer').textContent = p.answer;
+  document.getElementById('ctrl-count').textContent = `${GS.idx+1} / ${GS.order.length}`;
+  document.getElementById('ctrl-pts').textContent = p.points+' pts';
+
+  const cd = document.getElementById('ctrl-diff');
+  cd.textContent = p.difficulty;
+  cd.className = 'diff-badge diff-'+p.difficulty+' ';
+  cd.style.cssText = 'font-size:.8rem;padding:.2rem .8rem;';
+
+  // Timer
+  const tb = document.getElementById('ctrl-timer-big');
+  tb.textContent = GS.timeRemaining;
+  tb.className = 'timer-count-big'+(GS.timeRemaining<=5?' urgent':'');
+
+  const timerBtn = document.getElementById('ctrl-timer-btn');
+  timerBtn.textContent = GS.timerRunning ? '⏸ Pause' : '▶ Start';
+  timerBtn.className = 'btn '+(GS.timerRunning ? 'btn-orange' : 'btn-green');
+
+  // Reveal button
+  const rb = document.getElementById('ctrl-reveal-btn');
+  rb.textContent = GS.answerRevealed ? '🙈 Hide Answer' : '👁 Reveal Answer';
+
+  // Teams
+  const tc = document.getElementById('ctrl-teams');
+  tc.innerHTML = '';
+  GS.teams.forEach((t,i) => {
+    const row = document.createElement('div');
+    row.className = 'team-row';
+    row.innerHTML = `
+      <input class="team-name-inp" value="${escHtml(t.name)}"
+        onchange="updateTeamName(${i},this.value)" oninput="updateTeamName(${i},this.value)">
+      <button class="sc-btn sc-minus" onclick="changeScore(${i},-${p.points})">−</button>
+      <span class="team-score-disp">${t.score}</span>
+      <button class="sc-btn sc-plus"  onclick="changeScore(${i},+${p.points})">+</button>
+      <button class="sc-btn sc-buzz"  onclick="buzz(${i})" title="Buzz in — award ${p.points} pts">⚡</button>
+      <button class="sc-btn" style="background:#333;color:var(--dim);font-size:.7rem;" onclick="removeTeam(${i})">✕</button>
+    `;
+    tc.appendChild(row);
+  });
+
+  // Plate list
+  const pl = document.getElementById('ctrl-plate-list');
+  pl.innerHTML = '';
+  GS.order.forEach((oi, listIdx) => {
+    const q = ALL_PLATES[oi];
+    const item = document.createElement('div');
+    item.className = 'plate-item'+(listIdx===GS.idx?' active':'');
+    item.onclick = () => jumpToPlate(listIdx);
+    item.innerHTML = `
+      <span class="dot dot-${q.difficulty}"></span>
+      <span class="plate-item-text">${q.plate}</span>
+      <span class="plate-item-pts">${q.points}p</span>
+    `;
+    pl.appendChild(item);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONFETTI
+   ═══════════════════════════════════════════════════════════ */
+function showConfetti() {
+  const colors = ['#f5c842','#e94560','#2ecc71','#3498db','#9b59b6','#f39c12','#1abc9c'];
+  for (let i=0;i<80;i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      top:${Math.random()*-10}vh;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*2}s;
+      animation-duration:${2.5+Math.random()*2}s;
+      transform:rotate(${Math.random()*360}deg);
+      border-radius:${Math.random()>.5?'50%':'2px'};
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 5000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODE ROUTING
+   ═══════════════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function goDisplay() {
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('display').style.display = 'flex';
+  isDisplay = true;
+  freshOrder();
+  startDisplayPeer();
+}
+
+function goControl() {
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('control').style.display = 'flex';
+  isDisplay = false;
+}
+
+function connectToDisplay() {
+  const code = document.getElementById('ctrl-peer-input').value.trim();
+  if (!code) { alert('Please enter the code shown on the TV.'); return; }
+  startControlPeer(code);
+}
+
+// Auto-route if URL params present
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  const mode = p.get('mode');
+  const peer = p.get('peer');
+
+  if (mode === 'display') {
+    goDisplay();
+  } else if (mode === 'control' && peer) {
+    goControl();
+    document.getElementById('ctrl-peer-input').value = peer;
+    // slight delay so peer is ready
+    setTimeout(connectToDisplay, 400);
+  }
+  // else: show landing
+});
+</script>
+</body>
+</html>
