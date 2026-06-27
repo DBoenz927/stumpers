@@ -38,7 +38,7 @@ body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff;min-height:
 .de{background:var(--easy);color:#fff}.dm{background:var(--med);color:#fff}.dh{background:var(--hard);color:#fff}
 
 /* Plate color themes (bg / border / text / state-label-color) */
-.ps1{background:#f2ead8;border:9px solid #2c3e50}  /* Stumpers  */
+.ps1{background:#ffffff;border:9px solid #003399}  /* Connecticut */
 .ps2{background:#f5dc00;border:9px solid #1a3a7c}  /* New York  */
 .ps3{background:#fff8f0;border:9px solid #e07000}  /* Florida   */
 .ps4{background:#ffffff;border:9px solid #1a1a1a}  /* Texas     */
@@ -48,11 +48,11 @@ body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff;min-height:
 .ps8{background:#f0f4f0;border:9px solid #1b5e20}  /* Mass.     */
 .ps9{background:#e8eaf6;border:9px solid #1a237e}  /* Illinois  */
 .ps10{background:#fff8e1;border:9px solid #e65100} /* Tennessee */
-.ps1 .lp-state{color:#3a3a3a}.ps2 .lp-state{color:#1a3a7c}.ps3 .lp-state{color:#e07000}
+.ps1 .lp-state{color:#003399}.ps2 .lp-state{color:#1a3a7c}.ps3 .lp-state{color:#e07000}
 .ps4 .lp-state{color:#1a1a1a}.ps5 .lp-state{color:#1565c0}.ps6 .lp-state{color:#2e7d32}
 .ps7 .lp-state{color:#b71c1c}.ps8 .lp-state{color:#1b5e20}.ps9 .lp-state{color:#1a237e}
 .ps10 .lp-state{color:#e65100}
-.ps1 .lp-chars,.ps2 .lp-chars,.ps4 .lp-chars,.ps5 .lp-chars,.ps6 .lp-chars{color:#1a1a2e}
+.ps1 .lp-chars,.ps2 .lp-chars,.ps1 .lp-chars,.ps4 .lp-chars,.ps5 .lp-chars,.ps6 .lp-chars{color:#1a1a2e}
 .ps3 .lp-chars,.ps7 .lp-chars,.ps8 .lp-chars,.ps9 .lp-chars,.ps10 .lp-chars{color:#1a1a2e}
 
 /* ── LANDING ── */
@@ -172,7 +172,7 @@ body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff;min-height:
   <div class="plate-wrap" style="pointer-events:none">
     <div class="lp ps1" style="min-width:unset;padding:.8rem 1.8rem">
       <div class="bolt btl"></div><div class="bolt btr"></div><div class="bolt bbl"></div><div class="bolt bbr"></div>
-      <div class="lp-state">Stumpers County</div>
+      <div class="lp-state">Connecticut</div>
       <div class="lp-chars">10SNE1</div>
     </div>
   </div>
@@ -398,7 +398,7 @@ const GAMES=[
 ]];
 
 const PLATE_STYLES=[
-  {cls:'ps1',state:'Stumpers County'},
+  {cls:'ps1',state:'Connecticut'},
   {cls:'ps2',state:'New York'},
   {cls:'ps3',state:'Florida'},
   {cls:'ps4',state:'Texas'},
@@ -727,13 +727,14 @@ function renderSetupTeams(){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function el(id){return document.getElementById(id);}
 function show(id){
-  // hide all top-level display/control children, show the one requested
   ['d-waiting','d-lobby','d-game','d-gameover','c-waiting','c-setup','c-game'].forEach(x=>{
-    const e=el(x);if(e){e.style.display='none';}
+    const e=el(x);if(e){e.style.display='none';e.classList.add('hidden');}
   });
   const e=el(id);if(e){
-    e.style.display=['d-game','c-setup','c-game'].includes(id)?'flex':'flex';
+    e.classList.remove('hidden');
+    e.style.display='flex';
     if(id==='d-game')e.style.flexDirection='column';
+    if(id==='c-setup')e.style.flexDirection='column';
   }
 }
 function confetti(){
