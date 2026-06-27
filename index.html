@@ -1,1041 +1,777 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--
-  ╔══════════════════════════════════════════════════════════════╗
-  ║              BUMPER STUMPERS - Birthday Edition              ║
-  ╠══════════════════════════════════════════════════════════════╣
-  ║  GITHUB PAGES SETUP (one-time, ~5 minutes):                 ║
-  ║  1. Create a new public repo on github.com (e.g. "stumpers")║
-  ║  2. Upload this file as "index.html" to that repo           ║
-  ║  3. Settings → Pages → Branch: main → Save                  ║
-  ║  4. Your URL: https://[you].github.io/[repo]/               ║
-  ║                                                              ║
-  ║  HOW TO PLAY EACH ROUND:                                     ║
-  ║  1. Open the URL on your Fire Cube (Silk Browser)           ║
-  ║  2. Tap  "📺 I'm the Display"                               ║
-  ║  3. A QR code appears — scan it with your Android phone     ║
-  ║  4. Phone becomes the controller. Start playing!            ║
-  ║                                                              ║
-  ║  NO SERVER NEEDED — uses free WebRTC peer-to-peer sync      ║
-  ╚══════════════════════════════════════════════════════════════╝
+  BUMPER STUMPERS v2 · https://DBoenz927.github.io/stumpers/
+  Upload index.html to your repo → Settings → Pages → Deploy from main
 -->
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Bumper Stumpers 🚗</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <style>
-    :root {
-      --bg:       #0d0d1a;
-      --surface:  #1a1a2e;
-      --surface2: #16213e;
-      --accent:   #e94560;
-      --gold:     #f5c842;
-      --easy:     #2ecc71;
-      --medium:   #f39c12;
-      --hard:     #e74c3c;
-      --text:     #ffffff;
-      --dim:      #8888aa;
-      --plate-bg: #f2ead8;
-      --plate-bd: #2c3e50;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body {
-      font-family: 'Oswald', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Bumper Stumpers 🚗</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0d0d1a;--surf:#1a1a2e;--surf2:#16213e;--acc:#e94560;--gold:#f5c842;--easy:#2ecc71;--med:#f39c12;--hard:#e74c3c;--dim:#7788aa;--plbg:#f2ead8;--plbd:#2c3e50}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff;min-height:100vh}
+.hidden{display:none!important}
+.btn{display:block;width:100%;padding:.75rem 1rem;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.96)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.b-red{background:var(--acc);color:#fff}.b-gold{background:var(--gold);color:#111}
+.b-grn{background:var(--easy);color:#fff}.b-org{background:var(--med);color:#fff}
+.b-gray{background:var(--surf2);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.b-dng{background:var(--hard);color:#fff}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
 
-    /* ── SHARED UTILITIES ─────────────────────────────── */
-    .hidden { display: none !important; }
-    .btn {
-      display: block; width: 100%;
-      padding: .8rem 1rem;
-      border: none; border-radius: 10px;
-      font-family: 'Oswald', sans-serif; font-size: 1.1rem; font-weight: 700;
-      cursor: pointer; text-transform: uppercase; letter-spacing: .06em;
-      transition: transform .1s, opacity .2s;
-    }
-    .btn:active  { transform: scale(.96); }
-    .btn:disabled { opacity: .35; cursor: not-allowed; }
-    .btn-red    { background: var(--accent);  color: #fff; }
-    .btn-gold   { background: var(--gold);    color: #111; }
-    .btn-green  { background: var(--easy);    color: #fff; }
-    .btn-orange { background: var(--medium);  color: #fff; }
-    .btn-gray   { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,.15); }
-    .btn-danger { background: var(--hard);    color: #fff; }
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; }
+/* ── LICENSE PLATE ── */
+.plate-wrap{display:flex;justify-content:center;align-items:center}
+.lp{position:relative;border-radius:14px;padding:1.2rem 2.6rem 1.5rem;box-shadow:inset 0 2px 8px rgba(0,0,0,.25),0 10px 50px rgba(0,0,0,.6);text-align:center;min-width:min(68vw,580px);transition:background .4s,border-color .4s}
+.lp::after{content:'';position:absolute;inset:8px;border:2px solid rgba(0,0,0,.15);border-radius:6px;pointer-events:none}
+.lp-state{font-size:clamp(.55rem,1.6vw,.8rem);letter-spacing:.35em;text-transform:uppercase;margin-bottom:.2rem;font-weight:600}
+.lp-chars{font-family:'Share Tech Mono',monospace;font-size:clamp(2.2rem,6.5vw,5rem);font-weight:900;letter-spacing:.1em;text-transform:uppercase;line-height:1;user-select:none}
+.bolt{position:absolute;width:18px;height:18px;background:radial-gradient(circle at 35% 35%,#ccc,#666);border-radius:50%;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+.btl{top:9px;left:9px}.btr{top:9px;right:9px}.bbl{bottom:9px;left:9px}.bbr{bottom:9px;right:9px}
+.dbg{display:inline-block;padding:.25rem 1rem;border-radius:20px;font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:.5rem}
+.de{background:var(--easy);color:#fff}.dm{background:var(--med);color:#fff}.dh{background:var(--hard);color:#fff}
 
-    /* ── LICENSE PLATE ────────────────────────────────── */
-    .plate-wrap {
-      display: flex; justify-content: center;
-    }
-    .license-plate {
-      position: relative;
-      background: var(--plate-bg);
-      border: 10px solid var(--plate-bd);
-      border-radius: 14px;
-      padding: 1.4rem 3rem 1.6rem;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,.25), 0 10px 50px rgba(0,0,0,.6);
-      text-align: center;
-      min-width: min(70vw, 600px);
-    }
-    .license-plate::after {
-      content: '';
-      position: absolute; inset: 8px;
-      border: 2px solid rgba(0,0,0,.18);
-      border-radius: 6px;
-      pointer-events: none;
-    }
-    .plate-state-label {
-      font-family: 'Oswald', sans-serif;
-      font-size: clamp(.6rem, 1.8vw, .85rem);
-      color: #555; letter-spacing: .35em; text-transform: uppercase;
-      margin-bottom: .25rem;
-    }
-    .plate-chars {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(2.4rem, 7vw, 5.5rem);
-      font-weight: 900; color: #1a1a2e;
-      letter-spacing: .12em; text-transform: uppercase;
-      line-height: 1; user-select: none;
-    }
-    .bolt {
-      position: absolute; width: 20px; height: 20px;
-      background: radial-gradient(circle at 35% 35%, #ccc, #777);
-      border-radius: 50%; box-shadow: inset 0 1px 3px rgba(0,0,0,.5);
-    }
-    .bolt-tl { top: 10px; left: 10px; }
-    .bolt-tr { top: 10px; right: 10px; }
-    .bolt-bl { bottom: 10px; left: 10px; }
-    .bolt-br { bottom: 10px; right: 10px; }
+/* Plate color themes (bg / border / text / state-label-color) */
+.ps1{background:#f2ead8;border:9px solid #2c3e50}  /* Stumpers  */
+.ps2{background:#f5dc00;border:9px solid #1a3a7c}  /* New York  */
+.ps3{background:#fff8f0;border:9px solid #e07000}  /* Florida   */
+.ps4{background:#ffffff;border:9px solid #1a1a1a}  /* Texas     */
+.ps5{background:#e8f4fd;border:9px solid #1565c0}  /* California*/
+.ps6{background:#e8f5e9;border:9px solid #2e7d32}  /* Colorado  */
+.ps7{background:#fff3e0;border:9px solid #b71c1c}  /* Georgia   */
+.ps8{background:#f0f4f0;border:9px solid #1b5e20}  /* Mass.     */
+.ps9{background:#e8eaf6;border:9px solid #1a237e}  /* Illinois  */
+.ps10{background:#fff8e1;border:9px solid #e65100} /* Tennessee */
+.ps1 .lp-state{color:#3a3a3a}.ps2 .lp-state{color:#1a3a7c}.ps3 .lp-state{color:#e07000}
+.ps4 .lp-state{color:#1a1a1a}.ps5 .lp-state{color:#1565c0}.ps6 .lp-state{color:#2e7d32}
+.ps7 .lp-state{color:#b71c1c}.ps8 .lp-state{color:#1b5e20}.ps9 .lp-state{color:#1a237e}
+.ps10 .lp-state{color:#e65100}
+.ps1 .lp-chars,.ps2 .lp-chars,.ps4 .lp-chars,.ps5 .lp-chars,.ps6 .lp-chars{color:#1a1a2e}
+.ps3 .lp-chars,.ps7 .lp-chars,.ps8 .lp-chars,.ps9 .lp-chars,.ps10 .lp-chars{color:#1a1a2e}
 
-    /* diff badge */
-    .diff-badge {
-      display: inline-block; padding: .3rem 1.2rem;
-      border-radius: 20px; font-size: .95rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .1em; margin-top: .6rem;
-    }
-    .diff-easy   { background: var(--easy);   color: #fff; }
-    .diff-medium { background: var(--medium); color: #fff; }
-    .diff-hard   { background: var(--hard);   color: #fff; }
+/* ── LANDING ── */
+#landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center;gap:1.5rem}
+.land-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,13vw,8rem);color:var(--gold);text-shadow:4px 4px 0 #c0392b,0 0 50px rgba(245,200,66,.4);letter-spacing:.12em;line-height:.9}
+.land-sub{font-size:1rem;color:var(--dim);max-width:380px}
+.land-btns{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center}
+.lbtn{padding:1.3rem 2.4rem;font-family:'Oswald',sans-serif;font-size:1.4rem;font-weight:700;border:none;border-radius:14px;cursor:pointer;letter-spacing:.06em;transition:transform .15s}
+.lbtn:hover{transform:translateY(-3px)}.lbtn:active{transform:scale(.96)}
+.lbtn-tv{background:linear-gradient(135deg,#e94560,#c0392b);color:#fff;box-shadow:0 6px 24px rgba(233,69,96,.45)}
+.lbtn-ctl{background:linear-gradient(135deg,#f5c842,#e67e22);color:#111;box-shadow:0 6px 24px rgba(245,200,66,.45)}
 
-    /* ── LANDING PAGE ─────────────────────────────────── */
-    #landing {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh; padding: 2rem; text-align: center; gap: 1.5rem;
-    }
-    #landing h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 12vw, 7rem);
-      color: var(--gold);
-      text-shadow: 4px 4px 0 #c0392b, 0 0 40px rgba(245,200,66,.4);
-      letter-spacing: .12em; line-height: 1;
-    }
-    #landing p { font-size: 1.1rem; color: var(--dim); max-width: 400px; }
-    .landing-btns { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
-    .landing-btn {
-      padding: 1.4rem 2.5rem;
-      font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700;
-      border: none; border-radius: 14px; cursor: pointer;
-      letter-spacing: .06em; transition: transform .15s, box-shadow .15s;
-    }
-    .landing-btn:hover  { transform: translateY(-3px); }
-    .landing-btn:active { transform: scale(.96); }
-    .landing-btn.tv  { background: linear-gradient(135deg,#e94560,#c0392b); color:#fff; box-shadow:0 6px 24px rgba(233,69,96,.45); }
-    .landing-btn.ctl { background: linear-gradient(135deg,#f5c842,#e67e22); color:#111; box-shadow:0 6px 24px rgba(245,200,66,.45); }
-    .landing-demo-plate { pointer-events: none; }
+/* ── DISPLAY MODE ── */
+#display{display:none;flex-direction:column;min-height:100vh;padding:1rem 1.5rem;gap:.8rem}
+.dtitle{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,5vw,3.2rem);color:var(--gold);text-shadow:2px 2px 0 #c0392b;letter-spacing:.18em;text-align:center}
+.dgame{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.dcount{font-size:.9rem;color:var(--dim)}
 
-    /* ── DISPLAY MODE ─────────────────────────────────── */
-    #display {
-      display: none; flex-direction: column;
-      min-height: 100vh; padding: 1rem 1.5rem; gap: 1rem;
-    }
-    .disp-header {
-      text-align: center; padding: .5rem 0;
-    }
-    .disp-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2rem, 5.5vw, 3.5rem);
-      color: var(--gold); text-shadow: 2px 2px 0 #c0392b;
-      letter-spacing: .18em;
-    }
-    .disp-game {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1.2rem;
-    }
+/* ── DISPLAY - LOBBY SCREEN ── */
+#d-lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1.5rem;padding:2rem;text-align:center}
+#d-lobby h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,10vw,6rem);color:var(--gold);text-shadow:4px 4px 0 #c0392b,0 0 40px rgba(245,200,66,.5);letter-spacing:.12em;line-height:.9;animation:titlePulse 2s ease infinite alternate}
+@keyframes titlePulse{from{text-shadow:4px 4px 0 #c0392b,0 0 20px rgba(245,200,66,.3)}to{text-shadow:4px 4px 0 #c0392b,0 0 60px rgba(245,200,66,.9)}}
+#d-lobby .sub{font-size:1.2rem;color:var(--dim)}
+#d-lobby .game-badge{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--acc);letter-spacing:.1em}
+#qrcode{background:#fff;padding:12px;border-radius:10px}
+.pcode{font-family:'Share Tech Mono',monospace;font-size:1.4rem;color:var(--acc);background:var(--surf);padding:.4rem 1rem;border-radius:8px;letter-spacing:.15em}
+.lobby-teams{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin-top:.5rem}
+.lobby-team{background:var(--surf);border:2px solid rgba(255,255,255,.1);border-radius:10px;padding:.5rem 1.2rem;font-size:1.1rem;font-weight:700;color:var(--gold)}
 
-    /* Timer */
-    .timer-ring {
-      position: relative; width: 100px; height: 100px;
-    }
-    .timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-    .timer-track { fill: none; stroke: #333; stroke-width: 8; }
-    .timer-fill  { fill: none; stroke: var(--easy); stroke-width: 8;
-      stroke-linecap: round;
-      stroke-dasharray: 283; stroke-dashoffset: 0;
-      transition: stroke-dashoffset .9s linear, stroke .3s;
-    }
-    .timer-text {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; font-weight: 700;
-    }
-    .timer-text.urgent { color: var(--hard); }
+/* ── DISPLAY - SETUP PREVIEW ── */
+#d-setup-preview{display:none;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem;padding:2rem;text-align:center}
+#d-setup-preview h2{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--gold);letter-spacing:.1em}
 
-    /* Answer area */
-    .answer-area { text-align: center; min-height: 70px; }
-    .answer-label { font-size: .9rem; color: var(--dim); letter-spacing: .2em; text-transform: uppercase; }
-    .answer-text {
-      font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 700; color: var(--gold);
-      animation: pop .35s cubic-bezier(.175,.885,.32,1.275);
-    }
-    @keyframes pop {
-      from { transform: scale(.4); opacity: 0; }
-      to   { transform: scale(1);  opacity: 1; }
-    }
+/* Timer ring */
+.tring{position:relative;width:90px;height:90px;flex-shrink:0}
+.tsvg{width:100%;height:100%;transform:rotate(-90deg)}
+.ttrack{fill:none;stroke:#333;stroke-width:8}
+.tfill{fill:none;stroke:var(--easy);stroke-width:8;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:0;transition:stroke-dashoffset .9s linear,stroke .3s}
+.tnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700}
+.tnum.urg{color:var(--hard)}
 
-    /* Scores bar */
-    .scores-bar {
-      display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center;
-    }
-    .score-card {
-      background: var(--surface); border: 2px solid rgba(255,255,255,.1);
-      border-radius: 12px; padding: .7rem 1.4rem; text-align: center; min-width: 120px;
-      transition: border-color .3s, box-shadow .3s;
-    }
-    .score-card.buzz {
-      border-color: var(--gold); box-shadow: 0 0 24px rgba(245,200,66,.5);
-      animation: shake .45s ease;
-    }
-    @keyframes shake {
-      0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)}
-    }
-    .score-name  { font-size: .8rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
-    .score-value { font-size: 2rem; font-weight: 700; color: var(--gold); }
+/* Answer */
+.ans-area{text-align:center;min-height:60px}
+.ans-lbl{font-size:.85rem;color:var(--dim);letter-spacing:.2em;text-transform:uppercase}
+.ans-txt{font-size:clamp(1.5rem,3.8vw,2.4rem);font-weight:700;color:var(--gold);animation:pop .35s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 
-    /* Plate counter */
-    .plate-count { font-size: .9rem; color: var(--dim); }
+/* Scores bar */
+.sbar{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center}
+.scard{background:var(--surf);border:2px solid rgba(255,255,255,.1);border-radius:12px;padding:.65rem 1.3rem;text-align:center;min-width:110px;transition:border-color .3s,box-shadow .3s}
+.scard.buzz{border-color:var(--gold);box-shadow:0 0 24px rgba(245,200,66,.5);animation:shake .45s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.sname{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+.sval{font-size:1.9rem;font-weight:700;color:var(--gold)}
 
-    /* Connection waiting */
-    #disp-waiting {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh; gap: 1.2rem; padding: 2rem; text-align: center;
-    }
-    #disp-waiting h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(1.8rem,5vw,2.8rem); color: var(--gold); letter-spacing: .1em;
-    }
-    #qrcode { background: #fff; padding: 12px; border-radius: 10px; }
-    .peer-code {
-      font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
-      color: var(--accent); background: var(--surface);
-      padding: .4rem 1rem; border-radius: 8px; letter-spacing: .15em;
-    }
-    .disp-hint { font-size: .9rem; color: var(--dim); max-width: 340px; }
+/* Waiting for connection */
+#d-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1rem;padding:2rem;text-align:center}
+#d-waiting h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,5vw,2.5rem);color:var(--gold);letter-spacing:.1em}
 
-    /* Game Over overlay (display) */
-    #disp-gameover {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.92);
-      flex-direction: column; align-items: center; justify-content: center;
-      z-index: 200; gap: 1rem; padding: 2rem; text-align: center;
-    }
-    #disp-gameover h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3.5rem,12vw,7rem); color: var(--gold);
-      text-shadow: 4px 4px 0 #c0392b, 0 0 60px rgba(245,200,66,.9);
-      animation: pulse-glow 1.2s ease infinite alternate;
-    }
-    @keyframes pulse-glow {
-      from { text-shadow: 4px 4px 0 #c0392b, 0 0 20px rgba(245,200,66,.5); }
-      to   { text-shadow: 4px 4px 0 #c0392b, 0 0 80px rgba(245,200,66,1);  }
-    }
-    .go-score-list { display: flex; flex-direction: column; gap: .5rem; }
-    .go-score-row  { font-size: 1.6rem; }
-    .go-score-row.winner { font-size: 2.2rem; color: var(--gold); }
+/* Game over */
+#d-gameover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:1rem;padding:2rem;text-align:center}
+#d-gameover h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,7rem);color:var(--gold);text-shadow:4px 4px 0 #c0392b,0 0 60px rgba(245,200,66,.9);animation:titlePulse 1.2s ease infinite alternate}
+.gorow{font-size:1.6rem}.gorow.winner{font-size:2.2rem;color:var(--gold)}
 
-    /* ── CONTROL MODE ─────────────────────────────────── */
-    #control {
-      display: none; flex-direction: column;
-      min-height: 100vh; max-width: 480px; margin: 0 auto; padding: .8rem; gap: .7rem;
-    }
-    #ctrl-waiting {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh; padding: 2rem; gap: 1.5rem; text-align: center;
-    }
-    #ctrl-waiting h2 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem; color: var(--gold);
-    }
-    .connect-input {
-      background: var(--surface); border: 2px solid rgba(255,255,255,.25);
-      border-radius: 10px; padding: .8rem; color: #fff;
-      font-family: 'Share Tech Mono', monospace; font-size: 1.2rem;
-      width: 100%; max-width: 320px; text-align: center; letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-    .connect-input::placeholder { color: var(--dim); text-transform: none; }
-
-    .ctrl-header { text-align: center; padding-bottom: .6rem; border-bottom: 1px solid rgba(255,255,255,.1); }
-    .ctrl-title  { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--gold); letter-spacing: .12em; }
-    .conn-badge  {
-      display: inline-block; padding: .15rem .6rem;
-      border-radius: 10px; font-size: .75rem; font-weight: 700; text-transform: uppercase;
-    }
-    .conn-ok   { background: var(--easy);   color: #fff; }
-    .conn-bad  { background: var(--hard);   color: #fff; }
-    .conn-wait { background: var(--medium); color: #fff; }
-
-    .ctrl-card {
-      background: var(--surface); border-radius: 12px; padding: .8rem;
-    }
-    .ctrl-card-label {
-      font-size: .75rem; text-transform: uppercase; letter-spacing: .15em;
-      color: var(--dim); margin-bottom: .6rem;
-    }
-
-    /* Mini plate */
-    .mini-plate {
-      background: var(--plate-bg); color: #1a1a2e;
-      border: 3px solid var(--plate-bd); border-radius: 8px;
-      padding: .5rem 1rem; text-align: center;
-      font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
-      font-weight: 900; letter-spacing: .1em;
-    }
-
-    /* Answer box */
-    .answer-box {
-      background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.3);
-      border-radius: 8px; padding: .6rem; text-align: center;
-      font-size: 1.1rem; font-weight: 600; color: var(--gold);
-      min-height: 2.5rem; display: flex; align-items: center; justify-content: center;
-    }
-
-    /* Teams */
-    .team-row {
-      display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem;
-    }
-    .team-name-inp {
-      flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
-      border-radius: 8px; padding: .35rem .6rem; color: #fff;
-      font-family: 'Oswald', sans-serif; font-size: 1rem;
-    }
-    .team-score-disp { font-size: 1.3rem; font-weight: 700; color: var(--gold); min-width: 52px; text-align: center; }
-    .sc-btn {
-      width: 34px; height: 34px; border: none; border-radius: 50%;
-      font-size: 1.1rem; font-weight: 900; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; line-height: 1;
-    }
-    .sc-plus  { background: var(--easy);   color: #fff; }
-    .sc-minus { background: var(--hard);   color: #fff; }
-    .sc-buzz  { background: var(--gold);   color: #111; }
-    .pt-chip {
-      font-size: .7rem; background: rgba(255,255,255,.1);
-      border-radius: 8px; padding: .15rem .4rem; color: var(--dim);
-    }
-
-    /* Timer control */
-    .timer-ctrl-row {
-      display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem;
-    }
-    .timer-ctrl-row input[type=range] {
-      flex: 1; accent-color: var(--accent); height: 6px; cursor: pointer;
-    }
-    .timer-val { font-size: 1rem; font-weight: 700; color: var(--gold); min-width: 40px; }
-    .timer-count-big {
-      font-size: 2.5rem; font-weight: 700; text-align: center;
-      color: var(--easy); transition: color .3s;
-    }
-    .timer-count-big.urgent { color: var(--hard); }
-
-    /* Plate list */
-    .plate-scroll { max-height: 200px; overflow-y: auto; margin-top: .4rem; }
-    .plate-item {
-      display: flex; align-items: center; gap: .5rem;
-      padding: .35rem .5rem; border-radius: 8px; cursor: pointer;
-      transition: background .15s;
-    }
-    .plate-item:hover  { background: rgba(255,255,255,.07); }
-    .plate-item.active { background: rgba(245,200,66,.15); }
-    .plate-item-text { font-family: 'Share Tech Mono', monospace; font-size: .9rem; flex: 1; }
-    .plate-item-pts  { font-size: .75rem; color: var(--dim); }
-    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .dot-easy   { background: var(--easy);   }
-    .dot-medium { background: var(--medium); }
-    .dot-hard   { background: var(--hard);   }
-
-    /* Confetti */
-    .confetti {
-      position: fixed; pointer-events: none;
-      width: 10px; height: 14px; opacity: 0;
-      animation: fall 3.5s ease-in forwards;
-    }
-    @keyframes fall {
-      0%   { transform: translateY(-30px) rotate(0deg); opacity:1; }
-      100% { transform: translateY(105vh) rotate(720deg); opacity:0; }
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
-  </style>
+/* ── CONTROL ── */
+#control{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;padding:.7rem;gap:.6rem}
+#c-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;gap:1.5rem;text-align:center}
+#c-waiting h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)}
+.cinp{background:var(--surf);border:2px solid rgba(255,255,255,.25);border-radius:10px;padding:.75rem;color:#fff;font-family:'Share Tech Mono',monospace;font-size:1.2rem;width:100%;max-width:320px;text-align:center;letter-spacing:.12em;text-transform:uppercase}
+.cinp::placeholder{color:var(--dim);text-transform:none;letter-spacing:normal}
+#c-setup{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;padding:.7rem;gap:.6rem;overflow-y:auto}
+.chdr{text-align:center;padding-bottom:.6rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.ctit{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);letter-spacing:.12em}
+.cbdg{display:inline-block;padding:.15rem .6rem;border-radius:10px;font-size:.75rem;font-weight:700;text-transform:uppercase}
+.cok{background:var(--easy);color:#fff}.cbad{background:var(--hard);color:#fff}.cwait{background:var(--med);color:#fff}
+.ccard{background:var(--surf);border-radius:12px;padding:.75rem}
+.clbl{font-size:.73rem;text-transform:uppercase;letter-spacing:.15em;color:var(--dim);margin-bottom:.55rem}
+.team-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem}
+.tninp{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:.32rem .55rem;color:#fff;font-family:'Oswald',sans-serif;font-size:.95rem}
+.tscore{font-size:1.25rem;font-weight:700;color:var(--gold);min-width:48px;text-align:center}
+.scb{width:32px;height:32px;border:none;border-radius:50%;font-size:1rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.scb-p{background:var(--easy);color:#fff}.scb-m{background:var(--hard);color:#fff}.scb-z{background:var(--gold);color:#111}
+.ptchip{font-size:.68rem;background:rgba(255,255,255,.1);border-radius:6px;padding:.12rem .35rem;color:var(--dim)}
+.miniplate{background:var(--plbg);color:#1a1a2e;border:3px solid var(--plbd);border-radius:8px;padding:.45rem 1rem;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.3rem;font-weight:900;letter-spacing:.1em}
+.ansbox{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:.5rem;text-align:center;font-size:1.05rem;font-weight:600;color:var(--gold);min-height:2.4rem;display:flex;align-items:center;justify-content:center;margin-top:.4rem}
+.tdur{font-size:.85rem;color:var(--dim);margin-bottom:.4rem}
+.tsrow{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.tsrow label{font-size:.8rem;color:var(--dim);min-width:52px}
+.tsrow input[type=range]{flex:1;accent-color:var(--acc)}
+.tsval{font-size:.9rem;color:var(--gold);min-width:34px;text-align:right}
+.tbig{font-size:2.5rem;font-weight:700;text-align:center;color:var(--easy);transition:color .3s}
+.tbig.urg{color:var(--hard)}
+.plist{max-height:190px;overflow-y:auto;margin-top:.3rem}
+.pitem{display:flex;align-items:center;gap:.4rem;padding:.3rem .45rem;border-radius:8px;cursor:pointer;transition:background .15s}
+.pitem:hover{background:rgba(255,255,255,.07)}.pitem.act{background:rgba(245,200,66,.15)}
+.pitxt{font-family:'Share Tech Mono',monospace;font-size:.85rem;flex:1}
+.pipts{font-size:.7rem;color:var(--dim)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.de2{background:var(--easy)}.dm2{background:var(--med)}.dh2{background:var(--hard)}
+.sel-row{display:flex;gap:.4rem;flex-wrap:wrap}
+.gsel{padding:.35rem .7rem;border:2px solid rgba(255,255,255,.2);border-radius:8px;background:var(--surf2);color:var(--dim);font-family:'Oswald',sans-serif;font-size:.85rem;cursor:pointer;transition:.15s}
+.gsel:hover{border-color:var(--gold);color:var(--gold)}.gsel.act{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.1)}
+.confetti{position:fixed;pointer-events:none;width:10px;height:14px;opacity:0;animation:fall 3.5s ease-in forwards}
+@keyframes fall{0%{transform:translateY(-30px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+/* music toggle */
+.mbttn{position:fixed;bottom:12px;right:12px;width:40px;height:40px;border-radius:50%;border:none;background:var(--surf);color:var(--dim);font-size:1.1rem;cursor:pointer;z-index:300;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+</style>
 </head>
 <body>
+<button class="mbttn" id="musicBtn" onclick="toggleMusic()" title="Toggle Music">🎵</button>
 
-<!-- ══════════════ LANDING ══════════════ -->
+<!-- ══ LANDING ══ -->
 <div id="landing">
-  <h1>Bumper<br>Stumpers</h1>
-  <p>Decode the vanity license plate — say the phrase to score!</p>
-  <div class="plate-wrap landing-demo-plate">
-    <div class="license-plate" style="min-width:unset; padding:1rem 2rem;">
-      <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
-      <div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
-      <div class="plate-state-label">Stumpers County</div>
-      <div class="plate-chars">10SNE1</div>
+  <div class="land-title">Bumper<br>Stumpers</div>
+  <p class="land-sub">Decode the vanity plate — say the phrase to score!</p>
+  <div class="plate-wrap" style="pointer-events:none">
+    <div class="lp ps1" style="min-width:unset;padding:.8rem 1.8rem">
+      <div class="bolt btl"></div><div class="bolt btr"></div><div class="bolt bbl"></div><div class="bolt bbr"></div>
+      <div class="lp-state">Stumpers County</div>
+      <div class="lp-chars">10SNE1</div>
     </div>
   </div>
-  <div class="landing-btns">
-    <button class="landing-btn tv"  onclick="goDisplay()">📺 I'm the Display (TV)</button>
-    <button class="landing-btn ctl" onclick="goControl()">🎮 I'm the Controller (Phone)</button>
+  <div class="land-btns">
+    <button class="lbtn lbtn-tv"  onclick="goDisplay()">📺 I'm the Display (TV)</button>
+    <button class="lbtn lbtn-ctl" onclick="goControl()">🎮 I'm the Controller</button>
   </div>
-  <p style="font-size:.8rem; color:var(--dim);">
-    Open this URL on your Fire Cube → tap Display.<br>
-    Open on your Android → tap Controller, scan the QR.
-  </p>
+  <p style="font-size:.8rem;color:var(--dim)">Fire Cube → Display &nbsp;|&nbsp; Android → Controller → scan QR</p>
 </div>
 
-<!-- ══════════════ DISPLAY MODE ══════════════ -->
+<!-- ══ DISPLAY ══ -->
 <div id="display">
 
-  <!-- Waiting for controller -->
-  <div id="disp-waiting">
-    <h2>Waiting for Controller…</h2>
-    <p class="disp-hint">Scan this QR code with your Android phone to become the game host.</p>
+  <!-- Waiting for peer connection -->
+  <div id="d-waiting">
+    <h2>🚗 Starting Up…</h2>
+    <p style="color:var(--dim);font-size:.95rem">Generating your room code…</p>
     <div id="qrcode"></div>
-    <div>
-      <div style="font-size:.8rem;color:var(--dim);margin-bottom:.3rem;">Or type this code in the Controller:</div>
-      <div class="peer-code" id="peer-id-display">Connecting…</div>
-    </div>
-    <p class="disp-hint" style="margin-top:.5rem;">⚡ Uses free WebRTC — no accounts needed</p>
+    <div style="font-size:.8rem;color:var(--dim);margin-bottom:.3rem">Or enter this code on the Controller:</div>
+    <div class="pcode" id="pcode-disp">…</div>
+    <p style="font-size:.8rem;color:var(--dim);max-width:320px">Scan the QR with your Android phone to open the Controller automatically.</p>
   </div>
 
-  <!-- Main game display -->
-  <div id="disp-game" class="hidden">
-    <div class="disp-header">
-      <div class="disp-title">Bumper Stumpers</div>
-    </div>
-    <div class="disp-game">
-      <div class="plate-count" id="disp-plate-count">Plate 1 of 30</div>
+  <!-- Lobby (connected, setting up) -->
+  <div id="d-lobby" style="display:none">
+    <h1>Bumper<br>Stumpers</h1>
+    <div class="game-badge" id="d-game-badge">Game 1</div>
+    <div class="sub" id="d-lobby-sub">Waiting for host to configure…</div>
+    <div class="lobby-teams" id="d-lobby-teams"></div>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:.5rem">When ready, host presses Start Game on their phone.</p>
+  </div>
 
+  <!-- Main game board -->
+  <div id="d-game" style="display:none;flex-direction:column;min-height:100vh;padding:1rem 1.5rem;gap:.8rem">
+    <div class="dtitle">Bumper Stumpers</div>
+    <div class="dgame">
+      <div class="dcount" id="d-count">Plate 1 of 30</div>
       <div class="plate-wrap">
-        <div class="license-plate" id="disp-plate">
-          <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
-          <div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
-          <div class="plate-state-label">Stumpers County</div>
-          <div class="plate-chars" id="disp-plate-chars">GR8DAY</div>
+        <div class="lp ps1" id="d-plate">
+          <div class="bolt btl"></div><div class="bolt btr"></div><div class="bolt bbl"></div><div class="bolt bbr"></div>
+          <div class="lp-state" id="d-state-lbl">Stumpers County</div>
+          <div class="lp-chars" id="d-chars">GR8DAY</div>
         </div>
       </div>
-
-      <div style="display:flex;align-items:center;gap:1.5rem;justify-content:center;flex-wrap:wrap;">
-        <span class="diff-badge" id="disp-diff">EASY</span>
-        <div class="timer-ring">
-          <svg class="timer-svg" viewBox="0 0 100 100">
-            <circle class="timer-track" cx="50" cy="50" r="45"/>
-            <circle class="timer-fill" id="disp-timer-ring" cx="50" cy="50" r="45"/>
-          </svg>
-          <div class="timer-text" id="disp-timer-text">30</div>
+      <div style="display:flex;align-items:center;gap:1.2rem;justify-content:center;flex-wrap:wrap">
+        <span class="dbg de" id="d-diff">EASY · 100 PTS</span>
+        <div class="tring">
+          <svg class="tsvg" viewBox="0 0 100 100"><circle class="ttrack" cx="50" cy="50" r="45"/><circle class="tfill" id="d-tfill" cx="50" cy="50" r="45"/></svg>
+          <div class="tnum" id="d-tnum">30</div>
         </div>
-        <span style="font-size:1.1rem;color:var(--gold);font-weight:700;" id="disp-pts">100 pts</span>
       </div>
-
-      <div class="answer-area" id="disp-answer-area" style="display:none;">
-        <div class="answer-label">Answer</div>
-        <div class="answer-text" id="disp-answer-text"></div>
+      <div class="ans-area" id="d-ans-area" style="display:none">
+        <div class="ans-lbl">Answer</div>
+        <div class="ans-txt" id="d-ans-txt"></div>
       </div>
-
-      <div class="scores-bar" id="disp-scores"></div>
+      <div class="sbar" id="d-scores"></div>
     </div>
   </div>
 
-  <!-- Game over overlay -->
-  <div id="disp-gameover">
+  <!-- Game over -->
+  <div id="d-gameover">
     <h1>🏆 Game Over!</h1>
-    <div class="go-score-list" id="disp-go-scores"></div>
-    <div style="font-size:1rem;color:var(--dim);margin-top:.5rem;">Controller can start a new game</div>
+    <div id="d-go-scores" style="display:flex;flex-direction:column;gap:.5rem"></div>
+    <p style="color:var(--dim);font-size:.95rem;margin-top:.5rem">Controller can start a new game</p>
   </div>
-
 </div><!-- #display -->
 
-
-<!-- ══════════════ CONTROL MODE ══════════════ -->
+<!-- ══ CONTROL ══ -->
 <div id="control">
 
-  <!-- Waiting to connect -->
-  <div id="ctrl-waiting">
+  <!-- Enter peer code -->
+  <div id="c-waiting">
     <h2>🎮 Controller Setup</h2>
-    <p style="color:var(--dim);font-size:.95rem;">Enter the code shown on the TV screen:</p>
-    <input class="connect-input" id="ctrl-peer-input" type="text" placeholder="Paste code here…" autocomplete="off" autocapitalize="characters">
-    <button class="btn btn-gold" style="max-width:320px;" onclick="connectToDisplay()">Connect to Display →</button>
-    <p style="font-size:.8rem;color:var(--dim);">Or scan the QR on the TV with your camera app.</p>
+    <p style="color:var(--dim)">Enter the code from the TV:</p>
+    <input class="cinp" id="c-peer-inp" type="text" placeholder="Paste code here…" autocomplete="off" autocapitalize="characters">
+    <button class="btn b-gold" style="max-width:320px" onclick="connectToDisplay()">Connect to Display →</button>
+    <p style="font-size:.8rem;color:var(--dim)">Or scan the QR code shown on the TV.</p>
   </div>
 
-  <!-- Game controller UI -->
-  <div id="ctrl-game" class="hidden">
+  <!-- Setup screen -->
+  <div id="c-setup">
+    <div class="chdr">
+      <div class="ctit">Setup &nbsp;<span class="cbdg" id="c-cbdg">⏳ Connecting</span></div>
+    </div>
 
-    <div class="ctrl-header">
-      <div class="ctrl-title">Bumper Stumpers &nbsp;
-        <span class="conn-badge" id="ctrl-conn-badge">⏳ Connecting</span>
+    <!-- Game selection -->
+    <div class="ccard">
+      <div class="clbl">Select Game (1–10)</div>
+      <div class="sel-row" id="c-game-sel"></div>
+    </div>
+
+    <!-- Teams -->
+    <div class="ccard">
+      <div class="clbl" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Teams</span>
+        <button onclick="addTeam()" style="background:none;border:1px solid var(--dim);color:var(--dim);padding:.1rem .5rem;border-radius:6px;cursor:pointer;font-size:.72rem">+ Add Team</button>
+      </div>
+      <div id="c-teams-setup"></div>
+    </div>
+
+    <!-- Timer settings -->
+    <div class="ccard">
+      <div class="clbl">Timer Duration (per difficulty)</div>
+      <div class="tsrow"><label>Easy</label><input type="range" id="ts-easy" min="10" max="60" step="5" value="30" oninput="updTS('easy',this.value)"><span class="tsval" id="tv-easy">30s</span></div>
+      <div class="tsrow"><label>Medium</label><input type="range" id="ts-med" min="15" max="90" step="5" value="45" oninput="updTS('med',this.value)"><span class="tsval" id="tv-med">45s</span></div>
+      <div class="tsrow"><label>Hard</label><input type="range" id="ts-hard" min="20" max="120" step="5" value="60" oninput="updTS('hard',this.value)"><span class="tsval" id="tv-hard">60s</span></div>
+    </div>
+
+    <button class="btn b-grn" style="font-size:1.3rem;padding:1rem" onclick="startGame()">🚦 Start Game!</button>
+  </div>
+
+  <!-- In-game controller -->
+  <div id="c-game" class="hidden">
+    <div class="chdr">
+      <div class="ctit">Bumper Stumpers &nbsp;<span class="cbdg" id="c-g-cbdg">● Connected</span></div>
+    </div>
+
+    <div class="ccard">
+      <div class="clbl">Current Plate</div>
+      <div class="miniplate" id="c-mini">GR8DAY</div>
+      <div style="display:flex;align-items:center;gap:.4rem;margin-top:.35rem;flex-wrap:wrap">
+        <span class="dbg de" id="c-diff" style="font-size:.78rem;padding:.2rem .75rem">Easy</span>
+        <span class="ptchip" id="c-pts">100 pts</span>
+        <span class="dcount" id="c-count" style="margin-left:auto;font-size:.85rem;color:var(--dim)">1/30</span>
+      </div>
+      <div class="ansbox" id="c-ans">Great Day</div>
+    </div>
+
+    <div class="ccard">
+      <div class="clbl">Navigation</div>
+      <div class="r2" style="margin-bottom:.4rem">
+        <button class="btn b-gray" onclick="prevPlate()">⬅ Prev</button>
+        <button class="btn b-gray" onclick="nextPlate()">Next ➡</button>
+      </div>
+      <div class="r2">
+        <button class="btn b-red"  id="c-rev-btn" onclick="toggleReveal()">👁 Reveal</button>
+        <button class="btn b-gray" onclick="shufflePlates()">🔀 Shuffle</button>
       </div>
     </div>
 
-    <!-- Current plate preview -->
-    <div class="ctrl-card">
-      <div class="ctrl-card-label">Current Plate</div>
-      <div class="mini-plate" id="ctrl-mini-plate">GR8DAY</div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.4rem;flex-wrap:wrap;">
-        <span class="diff-badge" id="ctrl-diff" style="font-size:.8rem;padding:.2rem .8rem;">Easy</span>
-        <span class="pt-chip" id="ctrl-pts">100 pts</span>
-        <span class="plate-count" id="ctrl-count" style="margin-left:auto;">1 / 30</span>
-      </div>
-      <!-- Answer (visible to host only) -->
-      <div class="answer-box" id="ctrl-answer" style="margin-top:.5rem;">Great Day</div>
-    </div>
-
-    <!-- Answer + nav -->
-    <div class="ctrl-card">
-      <div class="ctrl-card-label">Controls</div>
-      <div class="row2" style="margin-bottom:.5rem;">
-        <button class="btn btn-gray" onclick="prevPlate()">⬅ Prev</button>
-        <button class="btn btn-gray" onclick="nextPlate()">Next ➡</button>
-      </div>
-      <div class="row2">
-        <button class="btn btn-red"   id="ctrl-reveal-btn" onclick="toggleReveal()">👁 Reveal Answer</button>
-        <button class="btn btn-gray"  onclick="shufflePlates()">🔀 Shuffle</button>
+    <div class="ccard">
+      <div class="clbl">Timer</div>
+      <div class="tbig" id="c-tbig">30</div>
+      <div class="r3" style="margin-top:.4rem">
+        <button class="btn b-grn"  id="c-t-btn" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn b-org"  onclick="resetTimer()">⟳ Reset</button>
+        <button class="btn b-gray" onclick="skipTimer()">⏭ Skip</button>
       </div>
     </div>
 
-    <!-- Timer -->
-    <div class="ctrl-card">
-      <div class="ctrl-card-label">Timer</div>
-      <div class="timer-count-big" id="ctrl-timer-big">30</div>
-      <div class="timer-ctrl-row">
-        <span style="font-size:.8rem;color:var(--dim);">Duration</span>
-        <input type="range" id="timer-dur-slider" min="10" max="60" step="5" value="30" oninput="changeDuration(this.value)">
-        <span class="timer-val" id="timer-dur-val">30s</span>
-      </div>
-      <div class="row3">
-        <button class="btn btn-green"  id="ctrl-timer-btn" onclick="toggleTimer()">▶ Start</button>
-        <button class="btn btn-orange" onclick="resetTimer()">⟳ Reset</button>
-        <button class="btn btn-gray"   onclick="skipTimer()">⏭ Skip</button>
-      </div>
-    </div>
-
-    <!-- Teams & Scores -->
-    <div class="ctrl-card">
-      <div class="ctrl-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="ccard">
+      <div class="clbl" style="display:flex;align-items:center;justify-content:space-between">
         <span>Teams &amp; Scores</span>
-        <button onclick="addTeam()" style="background:none;border:1px solid var(--dim);color:var(--dim);padding:.1rem .5rem;border-radius:6px;cursor:pointer;font-size:.75rem;">+ Add Team</button>
+        <button onclick="addTeam()" style="background:none;border:1px solid var(--dim);color:var(--dim);padding:.1rem .5rem;border-radius:6px;cursor:pointer;font-size:.72rem">+ Add Team</button>
       </div>
-      <div id="ctrl-teams"></div>
-      <div style="margin-top:.4rem; font-size:.75rem; color:var(--dim);">
-        Tap <span style="background:var(--gold);color:#111;padding:0 4px;border-radius:4px;">⚡</span> to buzz in &amp; award full points for current plate.
-      </div>
+      <div id="c-teams-game"></div>
+      <div style="font-size:.7rem;color:var(--dim);margin-top:.3rem">⚡ = Buzz in &amp; award full plate points</div>
     </div>
 
-    <!-- Plate list -->
-    <div class="ctrl-card">
-      <div class="ctrl-card-label">All Plates (tap to jump)</div>
-      <div class="plate-scroll" id="ctrl-plate-list"></div>
+    <div class="ccard">
+      <div class="clbl">All Plates (tap to jump)</div>
+      <div class="plist" id="c-plist"></div>
     </div>
 
-    <!-- End game -->
-    <div style="padding:.4rem 0 1.5rem;">
-      <button class="btn btn-danger" onclick="endGame()">🏆 End Game &amp; Show Winner</button>
+    <div style="padding:.4rem 0 1.5rem">
+      <button class="btn b-dng" onclick="endGame()">🏆 End Game</button>
     </div>
-
-  </div><!-- #ctrl-game -->
+  </div>
 </div><!-- #control -->
-
-
 <script>
-/* ═══════════════════════════════════════════════════════════
-   GAME DATA — 30 Vanity Plates
-   ═══════════════════════════════════════════════════════════ */
-const ALL_PLATES = [
-  // ── EASY (100 pts) ───────────────────────────────────────
-  { plate:'GR8DAY',     answer:'Great Day',                difficulty:'easy',   points:100 },
-  { plate:'2COOL4U',    answer:'Too Cool for You',          difficulty:'easy',   points:100 },
-  { plate:'ILUVU',      answer:'I Love You',                difficulty:'easy',   points:100 },
-  { plate:'BDAY4U',     answer:'Birthday for You',          difficulty:'easy',   points:100 },
-  { plate:'H8MONDY',    answer:'Hate Monday',               difficulty:'easy',   points:100 },
-  { plate:'GR8MOM',     answer:'Great Mom',                 difficulty:'easy',   points:100 },
-  { plate:'LUVPZA',     answer:'Love Pizza',                difficulty:'easy',   points:100 },
-  { plate:'4EVRYNG',    answer:'Forever Young',             difficulty:'easy',   points:100 },
-  { plate:'WKND',       answer:'Weekend',                   difficulty:'easy',   points:100 },
-  { plate:'FUNDAY',     answer:'Fun Day',                   difficulty:'easy',   points:100 },
-  // ── MEDIUM (200 pts) ─────────────────────────────────────
-  { plate:'10SNE1',     answer:'Tennis Anyone?',            difficulty:'medium', points:200 },
-  { plate:'XLNT',       answer:'Excellent',                 difficulty:'medium', points:200 },
-  { plate:'NVRQT',      answer:'Never Quit',                difficulty:'medium', points:200 },
-  { plate:'IN2MZK',     answer:'Into Music',                difficulty:'medium', points:200 },
-  { plate:'LKNG4LV',    answer:'Looking for Love',          difficulty:'medium', points:200 },
-  { plate:'4TUNAT',     answer:'Fortunate',                 difficulty:'medium', points:200 },
-  { plate:'URSPCL',     answer:'You Are Special',           difficulty:'medium', points:200 },
-  { plate:'B4ITSLAT',   answer:"Before It's Late",          difficulty:'medium', points:200 },
-  { plate:'AWESUM',     answer:'Awesome',                   difficulty:'medium', points:200 },
-  { plate:'LETSG0',     answer:"Let's Go",                  difficulty:'medium', points:200 },
-  // ── HARD (300 pts) ───────────────────────────────────────
-  { plate:'WYSIWYG',    answer:'What You See Is What You Get', difficulty:'hard', points:300 },
-  { plate:'2THDR',      answer:'Tooth Doctor',              difficulty:'hard',   points:300 },
-  { plate:'ICUQT',      answer:'I See You Cutie',           difficulty:'hard',   points:300 },
-  { plate:'UB4ME',      answer:'You Before Me',             difficulty:'hard',   points:300 },
-  { plate:'IMASTR',     answer:"I'm a Star",                difficulty:'hard',   points:300 },
-  { plate:'GRTFL',      answer:'Grateful',                  difficulty:'hard',   points:300 },
-  { plate:'NXTLVL',     answer:'Next Level',                difficulty:'hard',   points:300 },
-  { plate:'LIVLAFLUV',  answer:'Live Laugh Love',           difficulty:'hard',   points:300 },
-  { plate:'XTRA MIL',   answer:'Extra Mile',                difficulty:'hard',   points:300 },
-  { plate:'WNRWNR',     answer:'Winner Winner Chicken Dinner', difficulty:'hard', points:300 },
+/* ═══ PLATE DATA — 300 plates, 10 games × 30 ═══
+   d: 'e'=easy(100) 'm'=medium(200) 'h'=hard(300) */
+const GAMES=[
+[/* GAME 1 — Stumpers County */
+{p:'GR8DAY',a:'Great Day',d:'e'},{p:'2COOL4U',a:'Too Cool for You',d:'e'},{p:'ILUVU',a:'I Love You',d:'e'},{p:'BDAY4U',a:'Birthday for You',d:'e'},{p:'H8MONDY',a:'Hate Monday',d:'e'},{p:'GR8MOM',a:'Great Mom',d:'e'},{p:'LUVPZA',a:'Love Pizza',d:'e'},{p:'4EVRYNG',a:'Forever Young',d:'e'},{p:'WKND',a:'Weekend',d:'e'},{p:'FUNDAY',a:'Fun Day',d:'e'},
+{p:'10SNE1',a:'Tennis Anyone?',d:'m'},{p:'XLNT',a:'Excellent',d:'m'},{p:'NVRQT',a:'Never Quit',d:'m'},{p:'IN2MZK',a:'Into Music',d:'m'},{p:'LKNG4LV',a:'Looking for Love',d:'m'},{p:'4TUNAT',a:'Fortunate',d:'m'},{p:'URSPCL',a:'You Are Special',d:'m'},{p:'B4ITSLAT',a:"Before It's Late",d:'m'},{p:'AWESUM',a:'Awesome',d:'m'},{p:'LETSG0',a:"Let's Go",d:'m'},
+{p:'WYSIWYG',a:'What You See Is What You Get',d:'h'},{p:'2THDR',a:'Tooth Doctor',d:'h'},{p:'ICUQT',a:'I See You Cutie',d:'h'},{p:'UB4ME',a:'You Before Me',d:'h'},{p:'IMASTR',a:"I'm a Star",d:'h'},{p:'GRTFL',a:'Grateful',d:'h'},{p:'NXTLVL',a:'Next Level',d:'h'},{p:'LIVLAFLUV',a:'Live Laugh Love',d:'h'},{p:'XTRA MIL',a:'Extra Mile',d:'h'},{p:'WNRWNR',a:'Winner Winner Chicken Dinner',d:'h'}
+],
+[/* GAME 2 — New York */
+{p:'SMILNOW',a:'Smile Now',d:'e'},{p:'4FUN',a:'For Fun',d:'e'},{p:'LUVIT',a:'Love It',d:'e'},{p:'2NITE',a:'Tonight',d:'e'},{p:'LUVU2',a:'Love You Too',d:'e'},{p:'BGOOD',a:'Be Good',d:'e'},{p:'STAYFUN',a:'Stay Fun',d:'e'},{p:'GR8LIFE',a:'Great Life',d:'e'},{p:'URNXT',a:"You're Next",d:'e'},{p:'GR8FRND',a:'Great Friend',d:'e'},
+{p:'LUVDRVN',a:'Love Driving',d:'m'},{p:'BYTHSEA',a:'By the Sea',d:'m'},{p:'GDVIBZ',a:'Good Vibes',d:'m'},{p:'IM2BUSY',a:"I'm Too Busy",d:'m'},{p:'LIVINDM',a:'Living the Dream',d:'m'},{p:'NXTADV',a:'Next Adventure',d:'m'},{p:'GRLPOWR',a:'Girl Power',d:'m'},{p:'HVNABAL',a:'Having a Ball',d:'m'},{p:'4EVRLVD',a:'Forever Loved',d:'m'},{p:'JUSTDOIT',a:'Just Do It',d:'m'},
+{p:'BCUZICAN',a:'Because I Can',d:'h'},{p:'NWHRFAST',a:'Nowhere Fast',d:'h'},{p:'RU4REAL',a:'Are You for Real?',d:'h'},{p:'BTHEDIF',a:'Be the Difference',d:'h'},{p:'ILUVMYJ',a:'I Love My Job',d:'h'},{p:'ITSALLU',a:"It's All You",d:'h'},{p:'CANTBME',a:"Can't Be Me",d:'h'},{p:'LIFIS2SH',a:'Life Is Too Short',d:'h'},{p:'MKITCNT',a:'Make It Count',d:'h'},{p:'ALWYS4WD',a:'Always Forward',d:'h'}
+],
+[/* GAME 3 — Florida */
+{p:'LOVLIFE',a:'Love Life',d:'e'},{p:'GR8DAD',a:'Great Dad',d:'e'},{p:'2BKIND',a:'To Be Kind',d:'e'},{p:'SUNFUN',a:'Sun Fun',d:'e'},{p:'BEFIT',a:'Be Fit',d:'e'},{p:'LUVKIDS',a:'Love Kids',d:'e'},{p:'BCHLUV',a:'Beach Love',d:'e'},{p:'JSTCHIL',a:'Just Chilling',d:'e'},{p:'SUMRFUN',a:'Summer Fun',d:'e'},{p:'SUNNYDAY',a:'Sunny Day',d:'e'},
+{p:'XCITED',a:'Excited',d:'m'},{p:'NVRLATE',a:'Never Late',d:'m'},{p:'ILUVTRVL',a:'I Love Travel',d:'m'},{p:'GRTDAYS',a:'Great Days',d:'m'},{p:'LSTMINIT',a:'Last Minute',d:'m'},{p:'GD4SOUL',a:'Good for Soul',d:'m'},{p:'NOMRMNDY',a:'No More Monday',d:'m'},{p:'SNDFNWVS',a:'Sand and Waves',d:'m'},{p:'SNDCSTL',a:'Sand Castle',d:'m'},{p:'BCHBMBZN',a:'Beach Bumming',d:'m'},
+{p:'SHKSPR',a:'Shakespeare',d:'h'},{p:'RMBRWHN',a:'Remember When',d:'h'},{p:'BRKNEVN',a:'Break Even',d:'h'},{p:'NOPAINGN',a:'No Pain No Gain',d:'h'},{p:'RTRDHRE',a:'Retired Here',d:'h'},{p:'NOSNO4ME',a:'No Snow for Me',d:'h'},{p:'PRFCTNST',a:'Perfectionist',d:'h'},{p:'XTRRSTRL',a:'Extraterrestrial',d:'h'},{p:'QKSLVR',a:'Quicksilver',d:'h'},{p:'INTLGNT',a:'Intelligent',d:'h'}
+],
+[/* GAME 4 — Texas */
+{p:'GR8STUF',a:'Great Stuff',d:'e'},{p:'LUVBBQ',a:'Love BBQ',d:'e'},{p:'YALLCME',a:"Y'all Come",d:'e'},{p:'COWBUP',a:'Cowboy Up',d:'e'},{p:'YEEHA',a:'Yee Haw',d:'e'},{p:'BIGSTATE',a:'Big State',d:'e'},{p:'STARCAR',a:'Star Car',d:'e'},{p:'TRAILRDR',a:'Trail Rider',d:'e'},{p:'LUVTEXAS',a:'Love Texas',d:'e'},{p:'GIDDYUP',a:'Giddy Up',d:'e'},
+{p:'BIGSKIES',a:'Big Skies',d:'m'},{p:'10GALHAT',a:'Ten Gallon Hat',d:'m'},{p:'HORSEPWR',a:'Horsepower',d:'m'},{p:'TUMBLWED',a:'Tumbleweed',d:'m'},{p:'CNTRYRD',a:'Country Road',d:'m'},{p:'RDCHILI',a:'Red Chili',d:'m'},{p:'STMPEDE',a:'Stampede',d:'m'},{p:'PRARIDOG',a:'Prairie Dog',d:'m'},{p:'WLDRNESS',a:'Wilderness',d:'m'},{p:'LNSTRDR',a:'Lone Star Rider',d:'m'},
+{p:'2B0RNT2B',a:'To Be or Not to Be',d:'h'},{p:'RCKRLLR',a:'Rock and Roller',d:'h'},{p:'DNMCDRV',a:'Dynamic Drive',d:'h'},{p:'STRSNDSTRP',a:'Stars and Stripes',d:'h'},{p:'BRDLNR',a:'Borderline',d:'h'},{p:'NXTFRNTR',a:'Next Frontier',d:'h'},{p:'PRFRMNC',a:'Performance',d:'h'},{p:'IMPRSVNG',a:'Improving',d:'h'},{p:'VLNTNER',a:'Volunteer',d:'h'},{p:'CRTVTHNKR',a:'Creative Thinker',d:'h'}
+],
+[/* GAME 5 — California */
+{p:'ILUVSUN',a:'I Love Sun',d:'e'},{p:'SURFUP',a:'Surf Up',d:'e'},{p:'BEACHBUM',a:'Beach Bum',d:'e'},{p:'LOVMYDOG',a:'Love My Dog',d:'e'},{p:'JSTDRVN',a:'Just Driving',d:'e'},{p:'WKNDRDR',a:'Weekend Rider',d:'e'},{p:'FUNDRV',a:'Fun Drive',d:'e'},{p:'LOVHIKES',a:'Love Hikes',d:'e'},{p:'COOKOUT',a:'Cook Out',d:'e'},{p:'GOFISH',a:'Go Fish',d:'e'},
+{p:'PDLBRD',a:'Paddle Board',d:'m'},{p:'YOGATME',a:'Yoga Time',d:'m'},{p:'WRKOUT2',a:'Work Out Too',d:'m'},{p:'4WRDLVNG',a:'Forward Living',d:'m'},{p:'B4DAWN',a:'Before Dawn',d:'m'},{p:'NITE0WL',a:'Night Owl',d:'m'},{p:'MRATHON',a:'Marathon',d:'m'},{p:'HLTHYLFN',a:'Healthy Living',d:'m'},{p:'SUNRSR',a:'Sun Riser',d:'m'},{p:'WAVRDNG',a:'Wave Riding',d:'m'},
+{p:'CLFDRMNG',a:'California Dreaming',d:'h'},{p:'PDLBRDNG',a:'Paddleboarding',d:'h'},{p:'DNTSTPME',a:"Don't Stop Me",d:'h'},{p:'FLWRPWR',a:'Flower Power',d:'h'},{p:'OCNBREEZ',a:'Ocean Breeze',d:'h'},{p:'2B1WITH',a:'To Be One With',d:'h'},{p:'CSTLWAV',a:'Coastal Wave',d:'h'},{p:'PCFCDRFT',a:'Pacific Drift',d:'h'},{p:'HVNABCH',a:"Heaven's Beach",d:'h'},{p:'GOLDNST8',a:'Golden State',d:'h'}
+],
+[/* GAME 6 — Colorado */
+{p:'SKITIME',a:'Ski Time',d:'e'},{p:'SNOWDAY',a:'Snow Day',d:'e'},{p:'MTNLUV',a:'Mountain Love',d:'e'},{p:'HIKETIME',a:'Hike Time',d:'e'},{p:'LUVSNOW',a:'Love Snow',d:'e'},{p:'TRAILMX',a:'Trail Mix',d:'e'},{p:'PMPKNPIE',a:'Pumpkin Pie',d:'e'},{p:'FOLIAGE',a:'Foliage',d:'e'},{p:'HOTCDR',a:'Hot Cider',d:'e'},{p:'CAMPFIR',a:'Campfire',d:'e'},
+{p:'CTRVRIDE',a:'Country Ride',d:'m'},{p:'FALLCLRS',a:'Fall Colors',d:'m'},{p:'SNWSTORM',a:'Snow Storm',d:'m'},{p:'APPLEORG',a:'Apple Orchard',d:'m'},{p:'CDRFEST',a:'Cider Fest',d:'m'},{p:'SKIMTN',a:'Ski Mountain',d:'m'},{p:'HVSTRFUN',a:'Harvest Fun',d:'m'},{p:'COZYFIRE',a:'Cozy Fire',d:'m'},{p:'SNWFLKE',a:'Snowflake',d:'m'},{p:'MTNBKNG',a:'Mountain Biking',d:'m'},
+{p:'LSTCHPTR',a:'Last Chapter',d:'h'},{p:'TRNSFRMD',a:'Transformed',d:'h'},{p:'LGHTATND',a:'Light at End of Tunnel',d:'h'},{p:'BTTRTODAY',a:'Better Today',d:'h'},{p:'SHFTNDGRS',a:'Shifting Gears',d:'h'},{p:'EVRYMMNT',a:'Every Moment',d:'h'},{p:'WLDGOOSE',a:'Wild Goose Chase',d:'h'},{p:'SCRSTKPT',a:'Secrets Kept',d:'h'},{p:'MNTNCLMBR',a:'Mountain Climber',d:'h'},{p:'SKYWLKR',a:'Skywalker',d:'h'}
+],
+[/* GAME 7 — Georgia */
+{p:'PEACHLUV',a:'Peach Love',d:'e'},{p:'SWEETEA',a:'Sweet Tea',d:'e'},{p:'SOUTHRN',a:'Southern',d:'e'},{p:'WARMDAYS',a:'Warm Days',d:'e'},{p:'FRONTPCH',a:'Front Porch',d:'e'},{p:'LAZYDAY',a:'Lazy Day',d:'e'},{p:'SUNSWEET',a:'Sun Sweet',d:'e'},{p:'PCHNCRM',a:'Peaches and Cream',d:'e'},{p:'GARDN4U',a:'Garden for You',d:'e'},{p:'GOLFTME',a:'Golf Time',d:'e'},
+{p:'SWMPLAND',a:'Swampland',d:'m'},{p:'WARMWLCM',a:'Warm Welcome',d:'m'},{p:'STHRNCHM',a:'Southern Charm',d:'m'},{p:'BLUEBIRD',a:'Blue Bird',d:'m'},{p:'SWEETNSS',a:'Sweetness',d:'m'},{p:'SUNPORCH',a:'Sun Porch',d:'m'},{p:'CORNBRED',a:'Cornbread',d:'m'},{p:'MAGNOLIA',a:'Magnolia',d:'m'},{p:'PCHPCKG',a:'Peach Picking',d:'m'},{p:'RIVRDNC',a:'River Dance',d:'m'},
+{p:'THNKDFRNT',a:'Think Different',d:'h'},{p:'SPRNNTRL',a:'Supernatural',d:'h'},{p:'NVRSRNDRS',a:'Never Surrenders',d:'h'},{p:'GLSNHLF',a:'Glass Half Full',d:'h'},{p:'PRSDNTL',a:'Presidential',d:'h'},{p:'PHLSPHR',a:'Philosopher',d:'h'},{p:'MTHMATCN',a:'Mathematician',d:'h'},{p:'ENGNRING',a:'Engineering',d:'h'},{p:'DMCRCY',a:'Democracy',d:'h'},{p:'BTRHLF',a:'Better Half',d:'h'}
+],
+[/* GAME 8 — Massachusetts */
+{p:'BSTNLUV',a:'Boston Love',d:'e'},{p:'LOBSTRPT',a:'Lobster Pot',d:'e'},{p:'LUVCLMZ',a:'Love Clams',d:'e'},{p:'REDSOXX',a:'Red Sox',d:'e'},{p:'OCNSIDE',a:'Ocean Side',d:'e'},{p:'CAPECOD',a:'Cape Cod',d:'e'},{p:'SAILBTS',a:'Sail Boats',d:'e'},{p:'HARBORV',a:'Harbor View',d:'e'},{p:'SEAFOOD',a:'Sea Food',d:'e'},{p:'TWNPIER',a:'Town Pier',d:'e'},
+{p:'CLMCHDR',a:'Clam Chowder',d:'m'},{p:'LBSTRBST',a:'Lobster Boat',d:'m'},{p:'HARBORLT',a:'Harbor Light',d:'m'},{p:'CAPEWND',a:'Cape Wind',d:'m'},{p:'PILGRMRD',a:'Pilgrim Road',d:'m'},{p:'CRANBRRY',a:'Cranberry',d:'m'},{p:'BKBEACH',a:'Back Beach',d:'m'},{p:'CLAMFLTS',a:'Clam Flats',d:'m'},{p:'TWNMTNG',a:'Town Meeting',d:'m'},{p:'PLYMBCK',a:'Plymouth Rock',d:'m'},
+{p:'EVNTHLZN',a:'Even the Horizon',d:'h'},{p:'LKNGBCK',a:'Looking Back',d:'h'},{p:'RMNSNCE',a:'Reminiscence',d:'h'},{p:'THRGLASS',a:'Through the Glass',d:'h'},{p:'WTHRDSTRM',a:'Weather the Storm',d:'h'},{p:'SNSTSRNSE',a:'Sunsets and Sunrises',d:'h'},{p:'HVNAGRT',a:'Having a Great Time',d:'h'},{p:'GRTNSTRY',a:'Greatest Story',d:'h'},{p:'NVRBKDN',a:'Never Back Down',d:'h'},{p:'PRSVRNG',a:'Persevering',d:'h'}
+],
+[/* GAME 9 — Illinois */
+{p:'GOTIME',a:'Go Time',d:'e'},{p:'LUVCHGO',a:'Love Chicago',d:'e'},{p:'WINDYCTY',a:'Windy City',d:'e'},{p:'DEEPDISH',a:'Deep Dish',d:'e'},{p:'BIGCITY',a:'Big City',d:'e'},{p:'CITYLUV',a:'City Love',d:'e'},{p:'SKYVIEW',a:'Sky View',d:'e'},{p:'DWNTOWN',a:'Downtown',d:'e'},{p:'NITELIFE',a:'Night Life',d:'e'},{p:'JAZZCLUB',a:'Jazz Club',d:'e'},
+{p:'JZZNBLUZ',a:'Jazz and Blues',d:'m'},{p:'LKEFFCT',a:'Lake Effect',d:'m'},{p:'MIDNGHT',a:'Midnight',d:'m'},{p:'ARTSTRT',a:'Art Street',d:'m'},{p:'RIVWLKR',a:'River Walker',d:'m'},{p:'MUSICFST',a:'Music Fest',d:'m'},{p:'URBNDRVR',a:'Urban Driver',d:'m'},{p:'CITYPULS',a:'City Pulse',d:'m'},{p:'BIGCTYDRM',a:'Big City Dream',d:'m'},{p:'FSTLNE',a:'Fast Lane',d:'m'},
+{p:'THRSTFRLF',a:'Thirst for Life',d:'h'},{p:'CHMPNSHP',a:'Championship',d:'h'},{p:'WLDTRVLR',a:'World Traveler',d:'h'},{p:'INTRSPCT',a:'Introspect',d:'h'},{p:'BNDLSS',a:'Boundless',d:'h'},{p:'SLFMADE',a:'Self Made',d:'h'},{p:'CNFDNT',a:'Confident',d:'h'},{p:'RSRGNT',a:'Resurgent',d:'h'},{p:'XCCELRAT',a:'Accelerate',d:'h'},{p:'PSTNVTY',a:'Positivity',d:'h'}
+],
+[/* GAME 10 — Tennessee */
+{p:'GR8MUSIC',a:'Great Music',d:'e'},{p:'LUVTUNES',a:'Love Tunes',d:'e'},{p:'SNGWRTR',a:'Songwriter',d:'e'},{p:'GUITRPLR',a:'Guitar Player',d:'e'},{p:'MELDYTNS',a:'Melody Tunes',d:'e'},{p:'JAMTIME',a:'Jam Time',d:'e'},{p:'CNTRYSTR',a:'Country Star',d:'e'},{p:'ROCKSTAR',a:'Rock Star',d:'e'},{p:'POPQUEEN',a:'Pop Queen',d:'e'},{p:'SONGBIRD',a:'Song Bird',d:'e'},
+{p:'GRNDOPRY',a:'Grand Ole Opry',d:'m'},{p:'BLUGRSS',a:'Bluegrass',d:'m'},{p:'MIKDROP',a:'Mic Drop',d:'m'},{p:'RHTHMBLUZ',a:'Rhythm Blues',d:'m'},{p:'CROWDLUV',a:'Crowd Love',d:'m'},{p:'HITSTAGE',a:'Hit the Stage',d:'m'},{p:'STAGELIT',a:'Stage Lit',d:'m'},{p:'ONSTAGE',a:'On Stage',d:'m'},{p:'SETLST',a:'Set List',d:'m'},{p:'FNLTRACK',a:'Final Track',d:'m'},
+{p:'LGHTYEARS',a:'Light Years',d:'h'},{p:'LGCYSTRT',a:'Legacy Start',d:'h'},{p:'STRKNGOLD',a:'Striking Gold',d:'h'},{p:'EXCLNCE',a:'Excellence',d:'h'},{p:'UTHNTC',a:'Authentic',d:'h'},{p:'INVNCBLE',a:'Invincible',d:'h'},{p:'GRNDFINLE',a:'Grand Finale',d:'h'},{p:'NVRGVUP',a:'Never Give Up',d:'h'},{p:'ALLASONE',a:'All as One',d:'h'},{p:'WLDTRVLR2',a:'World Traveler Too',d:'h'}
+]];
+
+const PLATE_STYLES=[
+  {cls:'ps1',state:'Stumpers County'},
+  {cls:'ps2',state:'New York'},
+  {cls:'ps3',state:'Florida'},
+  {cls:'ps4',state:'Texas'},
+  {cls:'ps5',state:'California'},
+  {cls:'ps6',state:'Colorado'},
+  {cls:'ps7',state:'Georgia'},
+  {cls:'ps8',state:'Massachusetts'},
+  {cls:'ps9',state:'Illinois'},
+  {cls:'ps10',state:'Tennessee'},
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   AUDIO  (Web Audio API — no external files)
-   ═══════════════════════════════════════════════════════════ */
-let _actx = null;
-function actx() {
-  if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
-  return _actx;
+const DIFF_PTS={e:100,m:200,h:300};
+const DIFF_LBL={e:'EASY',m:'MEDIUM',h:'HARD'};
+const DIFF_CLS={e:'de',m:'dm',h:'dh'};
+const DIFF_CLS2={e:'de2',m:'dm2',h:'dh2'};
+
+/* ═══ AUDIO ═══ */
+let _ac=null;
+function AC(){if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();return _ac;}
+function tn(f,dur,vol=.2,type='sine',del=0){
+  const c=AC(),o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.value=f;o.connect(g);g.connect(c.destination);
+  const t=c.currentTime+del;
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.start(t);o.stop(t+dur+.05);
 }
-function tone(freq, dur, vol=.25, type='sine', delay=0) {
-  const c = actx();
-  const o = c.createOscillator();
-  const g = c.createGain();
-  o.type = type; o.frequency.value = freq;
-  o.connect(g); g.connect(c.destination);
-  const t = c.currentTime + delay;
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(.001, t + dur);
-  o.start(t); o.stop(t + dur + .05);
-}
-const SFX = {
-  correct:  () => { tone(523,.15,.3,'sine',0); tone(659,.15,.3,'sine',.12); tone(784,.3,.3,'sine',.24); },
-  reveal:   () => { tone(440,.12,.2,'sine',0); tone(550,.12,.2,'sine',.1); tone(660,.25,.2,'sine',.2); },
-  buzz:     () => { tone(160,.5,.35,'sawtooth'); },
-  timeup:   () => { [440,330,220].forEach((f,i)=>tone(f,.25,.3,'sawtooth',i*.2)); },
-  tick:     () => { tone(880,.05,.1,'square'); },
-  win:      () => { [523,659,784,1047,1319].forEach((f,i)=>tone(f,.3,.3,'sine',i*.12)); },
-  next:     () => { tone(440,.08,.15,'sine'); },
+const SFX={
+  correct:()=>{tn(523,.12,.28,'sine',0);tn(659,.12,.28,'sine',.1);tn(784,.28,.28,'sine',.22)},
+  reveal: ()=>{tn(440,.1,.2,'sine',0);tn(550,.1,.2,'sine',.09);tn(660,.22,.2,'sine',.18)},
+  buzz:   ()=>{tn(160,.5,.3,'sawtooth')},
+  timeup: ()=>{[440,330,220].forEach((f,i)=>tn(f,.22,.28,'sawtooth',i*.18))},
+  tick:   ()=>{tn(880,.05,.08,'square')},
+  win:    ()=>{[523,659,784,1047,1319].forEach((f,i)=>tn(f,.28,.25,'sine',i*.1))},
+  next:   ()=>{tn(494,.07,.12,'sine')},
+  start:  ()=>{[262,330,392,523].forEach((f,i)=>tn(f,.2,.25,'square',i*.1))},
 };
 
-/* ═══════════════════════════════════════════════════════════
-   GAME STATE  (lives on controller, pushed to display)
-   ═══════════════════════════════════════════════════════════ */
-let GS = {
-  order:          [], // shuffled indices into ALL_PLATES
-  idx:            0,
-  answerRevealed: false,
-  timerRunning:   false,
-  timeRemaining:  30,
-  timerDuration:  30,
-  teams:          [{ name:'Team 1', score:0 }, { name:'Team 2', score:0 }],
-  gameOver:       false,
-  buzzTeam:       -1,  // index of team that just buzzed, -1 = none
+/* ═══ BACKGROUND MUSIC ═══ */
+let musicOn=false,musicLoop=null,musicStep=0;
+// Upbeat horn-style melody in C major
+const MEL=[
+  {f:523,d:.25},{f:659,d:.125},{f:784,d:.125},{f:698,d:.25},{f:659,d:.25},
+  {f:523,d:.125},{f:587,d:.125},{f:659,d:.5},
+  {f:784,d:.25},{f:698,d:.125},{f:659,d:.125},{f:587,d:.25},{f:523,d:.25},
+  {f:440,d:.125},{f:494,d:.125},{f:523,d:.75},
+  {f:659,d:.25},{f:784,d:.125},{f:880,d:.125},{f:784,d:.25},{f:659,d:.25},
+  {f:523,d:.25},{f:587,d:.25},{f:659,d:.5},
+  {f:523,d:.25},{f:494,d:.125},{f:440,d:.125},{f:494,d:.25},{f:523,d:.25},
+  {f:587,d:.125},{f:523,d:.125},{f:494,d:1.0},
+];
+function playMusicNote(){
+  if(!musicOn)return;
+  const note=MEL[musicStep%MEL.length];
+  tn(note.f,note.d*.85,.08,'square');
+  // harmony
+  tn(note.f*1.5,note.d*.85,.04,'square');
+  musicLoop=setTimeout(()=>{musicStep++;playMusicNote();},note.d*1000);
+}
+function startMusic(){if(musicOn)return;musicOn=true;musicStep=0;try{AC();playMusicNote();}catch(e){}}
+function stopMusic(){musicOn=false;clearTimeout(musicLoop);}
+function toggleMusic(){
+  if(musicOn){stopMusic();document.getElementById('musicBtn').textContent='🔇';}
+  else{startMusic();document.getElementById('musicBtn').textContent='🎵';}
+}
+
+/* ═══ STATE ═══ */
+let GS={
+  phase:'lobby',   // 'lobby'|'playing'|'gameover'
+  game:0,          // 0-indexed into GAMES array
+  order:[],        // shuffled indices 0-29
+  idx:0,
+  answerRevealed:false,
+  timerRunning:false,
+  timeRemaining:30,
+  timerSettings:{e:30,m:45,h:60},
+  teams:[{name:'Team 1',score:0},{name:'Team 2',score:0}],
+  gameOver:false,
+  buzzTeam:-1,
 };
+let myPeer=null,conn=null,isDisplay=false,timerInterval=null;
 
-function currentPlate() { return ALL_PLATES[GS.order[GS.idx]]; }
+function curPlate(){return GAMES[GS.game][GS.order[GS.idx]];}
+function curDur(){return GS.timerSettings[curPlate().d];}
 
-function freshOrder() {
-  GS.order = ALL_PLATES.map((_,i)=>i);
-  GS.idx = 0; GS.answerRevealed = false;
-  GS.timerRunning = false; GS.timeRemaining = GS.timerDuration;
-  GS.gameOver = false; GS.buzzTeam = -1;
-}
-function shufflePlates() {
-  for (let i=GS.order.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [GS.order[i],GS.order[j]]=[GS.order[j],GS.order[i]];
-  }
-  GS.idx = 0; GS.answerRevealed = false;
-  GS.timerRunning = false; GS.timeRemaining = GS.timerDuration;
-  GS.buzzTeam = -1;
-  push();
+function freshOrder(){
+  GS.order=[...Array(30).keys()];
+  for(let i=29;i>0;i--){const j=Math.floor(Math.random()*(i+1));[GS.order[i],GS.order[j]]=[GS.order[j],GS.order[i]];}
+  GS.idx=0;GS.answerRevealed=false;GS.timerRunning=false;
+  GS.timeRemaining=curDur();GS.gameOver=false;GS.buzzTeam=-1;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   PEER / NETWORKING
-   ═══════════════════════════════════════════════════════════ */
-let myPeer   = null;
-let conn     = null;   // the open DataChannel
-let isDisplay = false;
+function push(){if(conn&&conn.open)conn.send(JSON.stringify(GS));renderCtrl();}
 
-function push() {
-  if (conn && conn.open) conn.send(JSON.stringify(GS));
-  renderControl();
-}
-
-function handleRemoteState(raw) {
-  GS = JSON.parse(raw);
-  renderDisplay();
-}
-
-/* Display side */
-function startDisplayPeer() {
-  myPeer = new Peer({ debug: 0 });
-  myPeer.on('open', id => {
-    document.getElementById('peer-id-display').textContent = id.toUpperCase();
-    const base = window.location.origin + window.location.pathname;
-    const ctrlURL = `${base}?mode=control&peer=${encodeURIComponent(id)}`;
-    new QRCode(document.getElementById('qrcode'), {
-      text: ctrlURL, width: 200, height: 200,
-      colorDark:'#000', colorLight:'#fff',
-      correctLevel: QRCode.CorrectLevel.L
-    });
+/* ═══ PEER ═══ */
+function startDisplayPeer(){
+  myPeer=new Peer({debug:0});
+  myPeer.on('open',id=>{
+    document.getElementById('pcode-disp').textContent=id.toUpperCase();
+    const url=window.location.origin+window.location.pathname+'?mode=control&peer='+encodeURIComponent(id);
+    new QRCode(document.getElementById('qrcode'),{text:url,width:200,height:200,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+    show('d-waiting');
   });
-  myPeer.on('connection', c => {
-    conn = c;
-    c.on('data', handleRemoteState);
-    c.on('open', () => {
-      document.getElementById('disp-waiting').classList.add('hidden');
-      document.getElementById('disp-game').classList.remove('hidden');
-    });
-    c.on('close', () => {
-      document.getElementById('disp-waiting').classList.remove('hidden');
-      document.getElementById('disp-game').classList.add('hidden');
-    });
+  myPeer.on('connection',c=>{
+    conn=c;
+    c.on('open',()=>{show('d-lobby');startMusic();});
+    c.on('data',d=>{GS=JSON.parse(d);renderDisp();});
+    c.on('close',()=>show('d-waiting'));
   });
-  myPeer.on('error', e => console.warn('Peer error:', e));
 }
-
-/* Controller side */
-function startControlPeer(peerId) {
-  myPeer = new Peer({ debug: 0 });
-  myPeer.on('open', () => {
-    conn = myPeer.connect(peerId.toLowerCase().trim());
-    conn.on('open', () => {
-      document.getElementById('ctrl-waiting').classList.add('hidden');
-      document.getElementById('ctrl-game').classList.remove('hidden');
-      document.getElementById('ctrl-conn-badge').textContent = '● Connected';
-      document.getElementById('ctrl-conn-badge').className = 'conn-badge conn-ok';
-      freshOrder();
+function startControlPeer(pid){
+  myPeer=new Peer({debug:0});
+  myPeer.on('open',()=>{
+    conn=myPeer.connect(pid.toLowerCase().trim());
+    conn.on('open',()=>{
+      show('c-setup');
+      setBdg('c-cbdg','● Connected','cok');
+      initSetupUI();
       push();
     });
-    conn.on('close', () => {
-      document.getElementById('ctrl-conn-badge').textContent = '✕ Disconnected';
-      document.getElementById('ctrl-conn-badge').className = 'conn-badge conn-bad';
-    });
-    conn.on('error', e => console.warn('Conn error:', e));
+    conn.on('close',()=>setBdg('c-cbdg','✕ Disconnected','cbad'));
   });
-  myPeer.on('error', e => {
-    alert('Could not connect. Check the code and try again.\n\n'+e.type);
-  });
+  myPeer.on('error',e=>alert('Could not connect. Check the code.\n'+e.type));
 }
 
-/* ═══════════════════════════════════════════════════════════
-   GAME ACTIONS  (run on controller, then push)
-   ═══════════════════════════════════════════════════════════ */
-let timerInterval = null;
-
-function startTimer() {
-  if (timerInterval) return;
-  timerInterval = setInterval(() => {
-    if (GS.timeRemaining <= 0) {
-      stopTimer();
-      SFX.timeup();
-      return;
-    }
+/* ═══ GAME ACTIONS ═══ */
+function startTimer(){
+  if(timerInterval)return;
+  timerInterval=setInterval(()=>{
+    if(GS.timeRemaining<=0){stopTimer();SFX.timeup();return;}
     GS.timeRemaining--;
-    if (GS.timeRemaining <= 5) SFX.tick();
+    if(GS.timeRemaining<=5)SFX.tick();
     push();
-  }, 1000);
-  GS.timerRunning = true;
-  push();
+  },1000);
+  GS.timerRunning=true;push();
 }
-function stopTimer() {
-  clearInterval(timerInterval); timerInterval = null;
-  GS.timerRunning = false;
-  push();
-}
-function resetTimer() {
-  stopTimer();
-  GS.timeRemaining = GS.timerDuration;
-  push();
-}
-function skipTimer() {
-  stopTimer();
-  GS.timeRemaining = 0;
-  push();
-}
-function toggleTimer() {
-  if (GS.timerRunning) stopTimer(); else startTimer();
-}
-function changeDuration(v) {
-  GS.timerDuration = parseInt(v);
-  document.getElementById('timer-dur-val').textContent = v+'s';
-  if (!GS.timerRunning) { GS.timeRemaining = GS.timerDuration; push(); }
-}
-function nextPlate() {
-  if (GS.idx >= GS.order.length-1) return;
-  stopTimer();
-  GS.idx++; GS.answerRevealed = false;
-  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
+function stopTimer(){clearInterval(timerInterval);timerInterval=null;GS.timerRunning=false;}
+function resetTimer(){stopTimer();GS.timeRemaining=curDur();push();}
+function skipTimer(){stopTimer();GS.timeRemaining=0;push();}
+function toggleTimer(){if(GS.timerRunning)stopTimer();else startTimer();}
+function nextPlate(){
+  if(GS.idx>=GS.order.length-1)return;
+  stopTimer();GS.idx++;GS.answerRevealed=false;
+  GS.timeRemaining=curDur();GS.buzzTeam=-1;
   SFX.next();
+  // auto-start timer
+  GS.timerRunning=false;push();
+  setTimeout(()=>startTimer(),400);
+}
+function prevPlate(){
+  if(GS.idx<=0)return;
+  stopTimer();GS.idx--;GS.answerRevealed=false;
+  GS.timeRemaining=curDur();GS.buzzTeam=-1;push();
+}
+function jumpToPlate(i){
+  stopTimer();GS.idx=i;GS.answerRevealed=false;
+  GS.timeRemaining=curDur();GS.buzzTeam=-1;push();
+}
+function toggleReveal(){
+  GS.answerRevealed=!GS.answerRevealed;
+  if(GS.answerRevealed){stopTimer();SFX.reveal();}
   push();
 }
-function prevPlate() {
-  if (GS.idx <= 0) return;
+function shufflePlates(){
   stopTimer();
-  GS.idx--; GS.answerRevealed = false;
-  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
-  push();
+  for(let i=29;i>0;i--){const j=Math.floor(Math.random()*(i+1));[GS.order[i],GS.order[j]]=[GS.order[j],GS.order[i]];}
+  GS.idx=0;GS.answerRevealed=false;GS.timeRemaining=curDur();GS.buzzTeam=-1;push();
 }
-function jumpToPlate(i) {
-  stopTimer();
-  GS.idx = i; GS.answerRevealed = false;
-  GS.timeRemaining = GS.timerDuration; GS.buzzTeam = -1;
-  push();
+function addTeam(){if(GS.teams.length>=6)return;GS.teams.push({name:'Team '+(GS.teams.length+1),score:0});push();if(GS.phase==='lobby')renderSetupTeams();}
+function removeTeam(i){if(GS.teams.length<=1)return;GS.teams.splice(i,1);push();}
+function changeScore(i,delta){GS.teams[i].score=Math.max(0,GS.teams[i].score+delta);push();}
+function updTeamName(i,v){GS.teams[i].name=v;push();}
+function buzz(i){
+  const pts=DIFF_PTS[curPlate().d];
+  stopTimer();GS.teams[i].score+=pts;GS.buzzTeam=i;GS.answerRevealed=true;SFX.correct();push();
 }
-function toggleReveal() {
-  GS.answerRevealed = !GS.answerRevealed;
-  if (GS.answerRevealed) { stopTimer(); SFX.reveal(); }
-  push();
+function updTS(d,v){
+  GS.timerSettings[d]=parseInt(v);
+  document.getElementById('tv-'+d).textContent=v+'s';
+  if(!GS.timerRunning&&curPlate().d===d){GS.timeRemaining=parseInt(v);push();}
 }
-function addTeam() {
-  if (GS.teams.length >= 6) return;
-  GS.teams.push({ name:`Team ${GS.teams.length+1}`, score:0 });
-  push();
+function startGame(){
+  GS.phase='playing';freshOrder();SFX.start();push();
+  show('c-game');
+  // auto-start timer for first plate
+  setTimeout(()=>startTimer(),600);
 }
-function removeTeam(i) {
-  if (GS.teams.length <= 1) return;
-  GS.teams.splice(i,1);
-  push();
+function endGame(){
+  if(!confirm('End the game and show final scores?'))return;
+  stopTimer();GS.gameOver=true;GS.phase='gameover';SFX.win();push();confetti();
 }
-function changeScore(i, delta) {
-  GS.teams[i].score = Math.max(0, GS.teams[i].score + delta);
+function selectGame(i){
+  GS.game=i;
+  document.querySelectorAll('.gsel').forEach((b,j)=>b.classList.toggle('act',j===i));
   push();
-}
-function buzz(i) {
-  // Award full plate points, buzz highlight
-  stopTimer();
-  GS.teams[i].score += currentPlate().points;
-  GS.buzzTeam = i;
-  GS.answerRevealed = true;
-  SFX.correct();
-  push();
-}
-function updateTeamName(i, val) {
-  GS.teams[i].name = val;
-  push();
-}
-function endGame() {
-  if (!confirm('End the game and show final scores?')) return;
-  stopTimer();
-  GS.gameOver = true;
-  SFX.win();
-  push();
-  showConfetti();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RENDER — DISPLAY SIDE
-   ═══════════════════════════════════════════════════════════ */
-function renderDisplay() {
-  if (!isDisplay) return;
-  const p = currentPlate();
+/* ═══ RENDER DISPLAY ═══ */
+function renderDisp(){
+  if(!isDisplay)return;
+  const ph=GS.phase;
 
-  document.getElementById('disp-plate-chars').textContent = p.plate;
-  document.getElementById('disp-plate-count').textContent =
-    `Plate ${GS.idx+1} of ${GS.order.length}`;
+  // Phase routing
+  if(ph==='lobby'){
+    show('d-lobby');
+    el('d-game-badge').textContent='Game '+(GS.game+1)+' — '+PLATE_STYLES[GS.game].state;
+    el('d-lobby-sub').textContent=GS.teams.length+' team'+(GS.teams.length!==1?'s':'')+' configured';
+    const tb=el('d-lobby-teams');tb.innerHTML='';
+    GS.teams.forEach(t=>{const d=document.createElement('div');d.className='lobby-team';d.textContent=t.name;tb.appendChild(d);});
+    return;
+  }
+  if(ph==='gameover'){
+    el('d-gameover').style.display='flex';
+    const sorted=[...GS.teams].sort((a,b)=>b.score-a.score);
+    el('d-go-scores').innerHTML=sorted.map((t,i)=>`<div class="gorow${i===0?' winner':''}">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}<b>${esc(t.name)}</b> — ${t.score} pts</div>`).join('');
+    confetti();return;
+  }
 
-  const db = document.getElementById('disp-diff');
-  db.textContent = p.difficulty.toUpperCase() + ' — ' + p.points + ' PTS';
-  db.className = 'diff-badge diff-' + p.difficulty;
+  // playing
+  show('d-game');
+  const p=curPlate();
+  const ps=PLATE_STYLES[GS.game];
+  const plate=el('d-plate');
 
-  document.getElementById('disp-pts').textContent = '';
+  // swap plate style
+  plate.className='lp '+ps.cls;
+  el('d-state-lbl').textContent=ps.state;
+  el('d-chars').textContent=p.p;
+  el('d-count').textContent='Plate '+(GS.idx+1)+' of '+GS.order.length;
+
+  const db=el('d-diff');
+  db.textContent=DIFF_LBL[p.d]+' · '+DIFF_PTS[p.d]+' PTS';
+  db.className='dbg '+DIFF_CLS[p.d];
 
   // Timer ring
-  const circ = 2*Math.PI*45;  // 283
-  const pct = GS.timerDuration > 0 ? GS.timeRemaining/GS.timerDuration : 0;
-  const fill = document.getElementById('disp-timer-ring');
-  fill.style.strokeDashoffset = circ*(1-pct);
-  fill.style.stroke = GS.timeRemaining<=5 ? '#e74c3c' : GS.timeRemaining<=10 ? '#f39c12' : '#2ecc71';
-  const tt = document.getElementById('disp-timer-text');
-  tt.textContent = GS.timeRemaining;
-  tt.className = 'timer-text' + (GS.timeRemaining<=5 ? ' urgent' : '');
+  const circ=283,pct=curDur()>0?GS.timeRemaining/curDur():0;
+  el('d-tfill').style.strokeDashoffset=circ*(1-pct);
+  el('d-tfill').style.stroke=GS.timeRemaining<=5?'#e74c3c':GS.timeRemaining<=10?'#f39c12':'#2ecc71';
+  el('d-tnum').textContent=GS.timeRemaining;
+  el('d-tnum').className='tnum'+(GS.timeRemaining<=5?' urg':'');
 
   // Answer
-  const aa = document.getElementById('disp-answer-area');
-  const at = document.getElementById('disp-answer-text');
-  if (GS.answerRevealed) {
-    aa.style.display = '';
-    at.textContent = p.answer;
-  } else {
-    aa.style.display = 'none';
-  }
+  const aa=el('d-ans-area');
+  if(GS.answerRevealed){aa.style.display='';el('d-ans-txt').textContent=p.a;}
+  else{aa.style.display='none';}
 
   // Scores
-  const sb = document.getElementById('disp-scores');
-  sb.innerHTML = '';
-  GS.teams.forEach((t,i) => {
-    const c = document.createElement('div');
-    c.className = 'score-card' + (GS.buzzTeam===i ? ' buzz' : '');
-    c.innerHTML = `<div class="score-name">${escHtml(t.name)}</div><div class="score-value">${t.score}</div>`;
+  const sb=el('d-scores');sb.innerHTML='';
+  GS.teams.forEach((t,i)=>{
+    const c=document.createElement('div');
+    c.className='scard'+(GS.buzzTeam===i?' buzz':'');
+    c.innerHTML=`<div class="sname">${esc(t.name)}</div><div class="sval">${t.score}</div>`;
     sb.appendChild(c);
   });
-
-  // Game over
-  const go = document.getElementById('disp-gameover');
-  if (GS.gameOver) {
-    go.style.display = 'flex';
-    const sorted = [...GS.teams].sort((a,b)=>b.score-a.score);
-    const gl = document.getElementById('disp-go-scores');
-    gl.innerHTML = sorted.map((t,i)=>
-      `<div class="go-score-row${i===0?' winner':''}">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}<b>${escHtml(t.name)}</b> — ${t.score} pts</div>`
-    ).join('');
-    showConfetti();
-  } else {
-    go.style.display = 'none';
-  }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RENDER — CONTROL SIDE
-   ═══════════════════════════════════════════════════════════ */
-function renderControl() {
-  if (isDisplay) return;
-  const p = currentPlate();
+/* ═══ RENDER CONTROLLER ═══ */
+function renderCtrl(){
+  if(isDisplay)return;
+  const phase=GS.phase;
+  if(phase==='lobby'||phase==='playing'){
+    if(phase==='playing'){show('c-game');}
+  }
+  if(phase==='gameover'){
+    // keep game view but show end notice
+  }
 
-  document.getElementById('ctrl-mini-plate').textContent = p.plate;
-  document.getElementById('ctrl-answer').textContent = p.answer;
-  document.getElementById('ctrl-count').textContent = `${GS.idx+1} / ${GS.order.length}`;
-  document.getElementById('ctrl-pts').textContent = p.points+' pts';
-
-  const cd = document.getElementById('ctrl-diff');
-  cd.textContent = p.difficulty;
-  cd.className = 'diff-badge diff-'+p.difficulty+' ';
-  cd.style.cssText = 'font-size:.8rem;padding:.2rem .8rem;';
+  const p=curPlate();
+  el('c-mini').textContent=p.p;
+  el('c-ans').textContent=p.a;
+  el('c-count').textContent=(GS.idx+1)+'/'+GS.order.length;
+  el('c-pts').textContent=DIFF_PTS[p.d]+' pts';
+  const cd=el('c-diff');cd.textContent=DIFF_LBL[p.d];cd.className='dbg '+DIFF_CLS[p.d]+' ';cd.style.cssText='font-size:.78rem;padding:.2rem .75rem';
 
   // Timer
-  const tb = document.getElementById('ctrl-timer-big');
-  tb.textContent = GS.timeRemaining;
-  tb.className = 'timer-count-big'+(GS.timeRemaining<=5?' urgent':'');
-
-  const timerBtn = document.getElementById('ctrl-timer-btn');
-  timerBtn.textContent = GS.timerRunning ? '⏸ Pause' : '▶ Start';
-  timerBtn.className = 'btn '+(GS.timerRunning ? 'btn-orange' : 'btn-green');
-
-  // Reveal button
-  const rb = document.getElementById('ctrl-reveal-btn');
-  rb.textContent = GS.answerRevealed ? '🙈 Hide Answer' : '👁 Reveal Answer';
+  el('c-tbig').textContent=GS.timeRemaining;
+  el('c-tbig').className='tbig'+(GS.timeRemaining<=5?' urg':'');
+  const tb=el('c-t-btn');
+  tb.textContent=GS.timerRunning?'⏸ Pause':'▶ Start';
+  tb.className='btn '+(GS.timerRunning?'b-org':'b-grn');
+  el('c-rev-btn').textContent=GS.answerRevealed?'🙈 Hide':'👁 Reveal';
 
   // Teams
-  const tc = document.getElementById('ctrl-teams');
-  tc.innerHTML = '';
-  GS.teams.forEach((t,i) => {
-    const row = document.createElement('div');
-    row.className = 'team-row';
-    row.innerHTML = `
-      <input class="team-name-inp" value="${escHtml(t.name)}"
-        onchange="updateTeamName(${i},this.value)" oninput="updateTeamName(${i},this.value)">
-      <button class="sc-btn sc-minus" onclick="changeScore(${i},-${p.points})">−</button>
-      <span class="team-score-disp">${t.score}</span>
-      <button class="sc-btn sc-plus"  onclick="changeScore(${i},+${p.points})">+</button>
-      <button class="sc-btn sc-buzz"  onclick="buzz(${i})" title="Buzz in — award ${p.points} pts">⚡</button>
-      <button class="sc-btn" style="background:#333;color:var(--dim);font-size:.7rem;" onclick="removeTeam(${i})">✕</button>
-    `;
-    tc.appendChild(row);
+  const tg=el('c-teams-game');tg.innerHTML='';
+  GS.teams.forEach((t,i)=>{
+    const pts=DIFF_PTS[p.d];
+    const r=document.createElement('div');r.className='team-row';
+    r.innerHTML=`<input class="tninp" value="${esc(t.name)}" oninput="updTeamName(${i},this.value)"><button class="scb scb-m" onclick="changeScore(${i},-${pts})">−</button><span class="tscore">${t.score}</span><button class="scb scb-p" onclick="changeScore(${i},+${pts})">+</button><button class="scb scb-z" onclick="buzz(${i})" title="Buzz in">⚡</button><button class="scb" style="background:#333;color:var(--dim);font-size:.65rem" onclick="removeTeam(${i})">✕</button>`;
+    tg.appendChild(r);
   });
 
   // Plate list
-  const pl = document.getElementById('ctrl-plate-list');
-  pl.innerHTML = '';
-  GS.order.forEach((oi, listIdx) => {
-    const q = ALL_PLATES[oi];
-    const item = document.createElement('div');
-    item.className = 'plate-item'+(listIdx===GS.idx?' active':'');
-    item.onclick = () => jumpToPlate(listIdx);
-    item.innerHTML = `
-      <span class="dot dot-${q.difficulty}"></span>
-      <span class="plate-item-text">${q.plate}</span>
-      <span class="plate-item-pts">${q.points}p</span>
-    `;
-    pl.appendChild(item);
+  const pl=el('c-plist');pl.innerHTML='';
+  GS.order.forEach((oi,li)=>{
+    const q=GAMES[GS.game][oi];
+    const it=document.createElement('div');
+    it.className='pitem'+(li===GS.idx?' act':'');
+    it.onclick=()=>jumpToPlate(li);
+    it.innerHTML=`<span class="dot ${DIFF_CLS2[q.d]}"></span><span class="pitxt">${q.p}</span><span class="pipts">${DIFF_PTS[q.d]}p</span>`;
+    pl.appendChild(it);
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CONFETTI
-   ═══════════════════════════════════════════════════════════ */
-function showConfetti() {
-  const colors = ['#f5c842','#e94560','#2ecc71','#3498db','#9b59b6','#f39c12','#1abc9c'];
-  for (let i=0;i<80;i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti';
-    el.style.cssText = `
-      left:${Math.random()*100}vw;
-      top:${Math.random()*-10}vh;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      animation-delay:${Math.random()*2}s;
-      animation-duration:${2.5+Math.random()*2}s;
-      transform:rotate(${Math.random()*360}deg);
-      border-radius:${Math.random()>.5?'50%':'2px'};
-    `;
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(), 5000);
+/* ═══ SETUP UI ═══ */
+function initSetupUI(){
+  // Game selector buttons
+  const gs=el('c-game-sel');gs.innerHTML='';
+  PLATE_STYLES.forEach((ps,i)=>{
+    const b=document.createElement('button');
+    b.className='gsel'+(i===GS.game?' act':'');
+    b.textContent=(i+1)+' '+ps.state;
+    b.onclick=()=>selectGame(i);
+    gs.appendChild(b);
+  });
+  renderSetupTeams();
+}
+function renderSetupTeams(){
+  const tc=el('c-teams-setup');tc.innerHTML='';
+  GS.teams.forEach((t,i)=>{
+    const r=document.createElement('div');r.className='team-row';
+    r.innerHTML=`<input class="tninp" value="${esc(t.name)}" oninput="updTeamName(${i},this.value)"><button class="scb" style="background:#333;color:var(--dim);font-size:.65rem" onclick="removeTeam(${i});renderSetupTeams()">✕</button>`;
+    tc.appendChild(r);
+  });
+}
+
+/* ═══ UTILS ═══ */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function el(id){return document.getElementById(id);}
+function show(id){
+  // hide all top-level display/control children, show the one requested
+  ['d-waiting','d-lobby','d-game','d-gameover','c-waiting','c-setup','c-game'].forEach(x=>{
+    const e=el(x);if(e){e.style.display='none';}
+  });
+  const e=el(id);if(e){
+    e.style.display=['d-game','c-setup','c-game'].includes(id)?'flex':'flex';
+    if(id==='d-game')e.style.flexDirection='column';
   }
 }
-
-/* ═══════════════════════════════════════════════════════════
-   MODE ROUTING
-   ═══════════════════════════════════════════════════════════ */
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function confetti(){
+  const cols=['#f5c842','#e94560','#2ecc71','#3498db','#9b59b6','#f39c12'];
+  for(let i=0;i<80;i++){
+    const el2=document.createElement('div');el2.className='confetti';
+    el2.style.cssText=`left:${Math.random()*100}vw;top:${Math.random()*-10}vh;background:${cols[~~(Math.random()*cols.length)]};animation-delay:${Math.random()*2}s;animation-duration:${2.5+Math.random()*2}s;border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(el2);setTimeout(()=>el2.remove(),5500);
+  }
 }
+function setBdg(id,txt,cls){const e=el(id);e.textContent=txt;e.className='cbdg '+cls;}
 
-function goDisplay() {
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('display').style.display = 'flex';
-  isDisplay = true;
-  freshOrder();
+/* ═══ ROUTING ═══ */
+function goDisplay(){
+  el('landing').style.display='none';
+  el('display').style.display='flex';el('display').style.flexDirection='column';
+  isDisplay=true;
+  GS.game=0;freshOrder();
   startDisplayPeer();
 }
-
-function goControl() {
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('control').style.display = 'flex';
-  isDisplay = false;
+function goControl(){
+  el('landing').style.display='none';
+  el('control').style.display='flex';el('control').style.flexDirection='column';
+  isDisplay=false;
+  show('c-waiting');
 }
-
-function connectToDisplay() {
-  const code = document.getElementById('ctrl-peer-input').value.trim();
-  if (!code) { alert('Please enter the code shown on the TV.'); return; }
+function connectToDisplay(){
+  const code=el('c-peer-inp').value.trim();
+  if(!code){alert('Enter the code shown on the TV.');return;}
+  show('c-waiting');// keep showing while connecting
   startControlPeer(code);
 }
 
-// Auto-route if URL params present
-window.addEventListener('DOMContentLoaded', () => {
-  const p = new URLSearchParams(window.location.search);
-  const mode = p.get('mode');
-  const peer = p.get('peer');
-
-  if (mode === 'display') {
-    goDisplay();
-  } else if (mode === 'control' && peer) {
-    goControl();
-    document.getElementById('ctrl-peer-input').value = peer;
-    // slight delay so peer is ready
-    setTimeout(connectToDisplay, 400);
-  }
-  // else: show landing
+window.addEventListener('DOMContentLoaded',()=>{
+  const p=new URLSearchParams(window.location.search);
+  const mode=p.get('mode'),peer=p.get('peer');
+  if(mode==='display'){goDisplay();}
+  else if(mode==='control'&&peer){goControl();el('c-peer-inp').value=peer;setTimeout(connectToDisplay,400);}
 });
 </script>
 </body>
