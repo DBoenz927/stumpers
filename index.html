@@ -118,33 +118,37 @@ body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff}
 .gorow{font-size:1.6rem}.gorow.winner{font-size:2.2rem;color:var(--gold)}
 
 /* ── CONTROL ── */
-#control{display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-#c-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:2rem;gap:1.5rem;text-align:center}
-#c-waiting h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)}
-.cinp{background:var(--surf);border:2px solid rgba(255,255,255,.25);border-radius:10px;padding:.75rem;color:#fff;font-family:'Share Tech Mono',monospace;font-size:1.2rem;width:100%;max-width:320px;text-align:center;letter-spacing:.12em;text-transform:uppercase}
+/* Fixed full-screen controller — portrait optimized, no scroll */
+#control{position:fixed;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;overflow:hidden;max-width:100%}
+#c-waiting{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;gap:1.2rem;text-align:center}
+#c-waiting h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold)}
+.cinp{background:var(--surf);border:2px solid rgba(255,255,255,.25);border-radius:10px;padding:.65rem;color:#fff;font-family:'Share Tech Mono',monospace;font-size:1.1rem;width:90%;max-width:300px;text-align:center;letter-spacing:.12em;text-transform:uppercase}
 .cinp::placeholder{color:var(--dim);text-transform:none;letter-spacing:normal}
-#c-setup{display:none;flex-direction:column;padding:.7rem;gap:.6rem}
-#c-game{flex-direction:column;padding:.7rem;gap:.6rem}
-.chdr{text-align:center;padding-bottom:.6rem;border-bottom:1px solid rgba(255,255,255,.1)}
-.ctit{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);letter-spacing:.12em}
-.cbdg{display:inline-block;padding:.15rem .6rem;border-radius:10px;font-size:.75rem;font-weight:700;text-transform:uppercase}
+#c-setup{flex:1;flex-direction:column;padding:.55rem;gap:.45rem;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#c-game{flex:1;flex-direction:column;padding:.45rem;gap:.3rem;overflow:hidden}
+.chdr{text-align:center;padding:.3rem 0 .4rem;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.ctit{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;color:var(--gold);letter-spacing:.1em}
+.cbdg{display:inline-block;padding:.1rem .5rem;border-radius:8px;font-size:.7rem;font-weight:700;text-transform:uppercase}
 .cok{background:var(--easy);color:#fff}.cbad{background:var(--hard);color:#fff}.cwait{background:var(--med);color:#fff}
-.ccard{background:var(--surf);border-radius:12px;padding:.75rem}
-.clbl{font-size:.73rem;text-transform:uppercase;letter-spacing:.15em;color:var(--dim);margin-bottom:.55rem}
-.team-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem}
-.tninp{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:.32rem .55rem;color:#fff;font-family:'Oswald',sans-serif;font-size:.95rem}
-.tscore{font-size:1.25rem;font-weight:700;color:var(--gold);min-width:48px;text-align:center}
-.scb{width:32px;height:32px;border:none;border-radius:50%;font-size:1rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ccard{background:var(--surf);border-radius:10px;padding:.5rem .6rem;flex-shrink:0}
+.clbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);margin-bottom:.3rem}
+/* setup-only */
+.team-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.3rem}
+.tninp{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:.28rem .5rem;color:#fff;font-family:'Oswald',sans-serif;font-size:.9rem;min-width:0}
+/* game teams */
+.gteam-row{display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:.35rem;margin-bottom:.3rem}
+.gteam-name{font-size:.9rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tscore{font-size:1.1rem;font-weight:700;color:var(--gold);min-width:44px;text-align:center}
+.scb{width:34px;height:34px;border:none;border-radius:50%;font-size:1rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .scb-p{background:var(--easy);color:#fff}.scb-m{background:var(--hard);color:#fff}.scb-z{background:var(--gold);color:#111}
-.ptchip{font-size:.68rem;background:rgba(255,255,255,.1);border-radius:6px;padding:.12rem .35rem;color:var(--dim)}
-.miniplate{background:var(--plbg);color:#1a1a2e;border:3px solid var(--plbd);border-radius:8px;padding:.45rem 1rem;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.3rem;font-weight:900;letter-spacing:.1em}
-.ansbox{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:.5rem;text-align:center;font-size:1.05rem;font-weight:600;color:var(--gold);min-height:2.4rem;display:flex;align-items:center;justify-content:center;margin-top:.4rem}
-.tdur{font-size:.85rem;color:var(--dim);margin-bottom:.4rem}
-.tsrow{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
-.tsrow label{font-size:.8rem;color:var(--dim);min-width:52px}
+.ptchip{font-size:.65rem;background:rgba(255,255,255,.1);border-radius:5px;padding:.1rem .3rem;color:var(--dim)}
+.miniplate{background:var(--plbg);color:#1a1a2e;border:3px solid var(--plbd);border-radius:8px;padding:.35rem .8rem;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.25rem;font-weight:900;letter-spacing:.1em;width:100%}
+.ansbox{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.3);border-radius:7px;padding:.35rem .5rem;text-align:center;font-size:.95rem;font-weight:600;color:var(--gold);display:flex;align-items:center;justify-content:center;margin-top:.3rem}
+.tsrow{display:flex;align-items:center;gap:.4rem;margin-bottom:.28rem}
+.tsrow label{font-size:.75rem;color:var(--dim);min-width:48px}
 .tsrow input[type=range]{flex:1;accent-color:var(--acc)}
-.tsval{font-size:.9rem;color:var(--gold);min-width:34px;text-align:right}
-.tbig{font-size:2.5rem;font-weight:700;text-align:center;color:var(--easy);transition:color .3s}
+.tsval{font-size:.85rem;color:var(--gold);min-width:32px;text-align:right}
+.tbig{font-size:2.2rem;font-weight:700;text-align:center;color:var(--easy);line-height:1;transition:color .3s}
 .tbig.urg{color:var(--hard)}
 .plist{max-height:190px;overflow-y:auto;margin-top:.3rem}
 .pitem{display:flex;align-items:center;gap:.4rem;padding:.3rem .45rem;border-radius:8px;cursor:pointer;transition:background .15s}
@@ -285,62 +289,52 @@ body{font-family:'Oswald',sans-serif;background:var(--bg);color:#fff}
     <button class="btn b-grn" style="font-size:1.3rem;padding:1rem" onclick="startGame()">🚦 Start Game!</button>
   </div>
 
-  <!-- In-game controller -->
+  <!-- In-game controller — compact portrait layout -->
   <div id="c-game" class="hidden">
+
+    <!-- Row 1: header status bar -->
     <div class="chdr">
-      <div class="ctit">Bumper Stumpers &nbsp;<span class="cbdg" id="c-g-cbdg">● Connected</span></div>
+      <div class="ctit" style="font-size:1.1rem">Stumpers &nbsp;<span class="cbdg" id="c-g-cbdg">● Connected</span></div>
     </div>
 
+    <!-- Row 2: plate + meta + answer -->
     <div class="ccard">
-      <div class="clbl">Current Plate</div>
-      <div class="miniplate" id="c-mini">GR8DAY</div>
-      <div style="display:flex;align-items:center;gap:.4rem;margin-top:.35rem;flex-wrap:wrap">
-        <span class="dbg de" id="c-diff" style="font-size:.78rem;padding:.2rem .75rem">Easy</span>
-        <span class="ptchip" id="c-pts">100 pts</span>
-        <span class="dcount" id="c-count" style="margin-left:auto;font-size:.85rem;color:var(--dim)">1/30</span>
+      <div style="display:flex;align-items:center;gap:.45rem">
+        <div class="miniplate" id="c-mini" style="flex:1;min-width:0;font-size:1.15rem;padding:.3rem .6rem">GR8DAY</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.18rem;flex-shrink:0">
+          <span class="dbg de" id="c-diff" style="font-size:.68rem;padding:.12rem .55rem">Easy</span>
+          <span class="ptchip" id="c-pts">100 pts</span>
+          <span style="font-size:.72rem;color:var(--dim)" id="c-count">1/30</span>
+        </div>
       </div>
-      <div class="ansbox" id="c-ans">Great Day</div>
+      <div class="ansbox" id="c-ans" style="margin-top:.3rem;font-size:.9rem;padding:.28rem .4rem">Great Day</div>
     </div>
 
-    <div class="ccard">
-      <div class="clbl">Navigation</div>
-      <div class="r2" style="margin-bottom:.4rem">
-        <button class="btn b-gray" onclick="prevPlate()">⬅ Prev</button>
-        <button class="btn b-gray" onclick="nextPlate()">Next ➡</button>
-      </div>
-      <div class="r2">
-        <button class="btn b-red"  id="c-rev-btn" onclick="toggleReveal()">👁 Reveal</button>
-        <button class="btn b-gray" onclick="shufflePlates()">🔀 Shuffle</button>
-      </div>
+    <!-- Row 3: Prev | Reveal | Next -->
+    <div class="r3">
+      <button class="btn b-gray" style="padding:.6rem .3rem;font-size:.85rem" onclick="prevPlate()">⬅ Prev</button>
+      <button class="btn b-red"  style="padding:.6rem .3rem;font-size:.85rem" id="c-rev-btn" onclick="toggleReveal()">👁 Reveal</button>
+      <button class="btn b-gray" style="padding:.6rem .3rem;font-size:.85rem" onclick="nextPlate()">Next ➡</button>
     </div>
 
-    <div class="ccard">
-      <div class="clbl">Timer</div>
-      <div class="tbig" id="c-tbig">30</div>
-      <div class="r3" style="margin-top:.4rem">
-        <button class="btn b-grn"  id="c-t-btn" onclick="toggleTimer()">▶ Start</button>
-        <button class="btn b-org"  onclick="resetTimer()">⟳ Reset</button>
-        <button class="btn b-gray" onclick="skipTimer()">⏭ Skip</button>
+    <!-- Row 4: timer -->
+    <div class="ccard" style="text-align:center;padding:.4rem .6rem">
+      <div class="tbig" id="c-tbig" style="font-size:2rem;line-height:1.1">30</div>
+      <div class="r3" style="margin-top:.3rem">
+        <button class="btn b-grn"  style="padding:.55rem .2rem;font-size:.82rem" id="c-t-btn" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn b-org"  style="padding:.55rem .2rem;font-size:.82rem" onclick="resetTimer()">⟳ Reset</button>
+        <button class="btn b-gray" style="padding:.55rem .2rem;font-size:.82rem" onclick="skipTimer()">⏭ Skip</button>
       </div>
     </div>
 
-    <div class="ccard">
-      <div class="clbl" style="display:flex;align-items:center;justify-content:space-between">
-        <span>Teams &amp; Scores</span>
-        <button onclick="addTeam()" style="background:none;border:1px solid var(--dim);color:var(--dim);padding:.1rem .5rem;border-radius:6px;cursor:pointer;font-size:.72rem">+ Add Team</button>
-      </div>
+    <!-- Row 5+6: teams (compact grid rows) -->
+    <div class="ccard" style="padding:.4rem .55rem">
       <div id="c-teams-game"></div>
-      <div style="font-size:.7rem;color:var(--dim);margin-top:.3rem">⚡ = Buzz in &amp; award full plate points</div>
     </div>
 
-    <div class="ccard">
-      <div class="clbl">All Plates (tap to jump)</div>
-      <div class="plist" id="c-plist"></div>
-    </div>
+    <!-- Row last: end game -->
+    <button class="btn b-dng" style="padding:.65rem;font-size:.9rem;flex-shrink:0" onclick="endGame()">🏆 End Game</button>
 
-    <div style="padding:.4rem 0 1.5rem">
-      <button class="btn b-dng" onclick="endGame()">🏆 End Game</button>
-    </div>
   </div>
 </div><!-- #control -->
 <script>
@@ -681,24 +675,13 @@ function renderCtrl(){
   tb.className='btn '+(GS.timerRunning?'b-org':'b-grn');
   el('c-rev-btn').textContent=GS.answerRevealed?'🙈 Hide':'👁 Reveal';
 
-  // Teams
+  // Teams — compact gteam-row (name | score | − | + | ⚡)
   const tg=el('c-teams-game');tg.innerHTML='';
   GS.teams.forEach((t,i)=>{
     const pts=DIFF_PTS[p.d];
-    const r=document.createElement('div');r.className='team-row';
-    r.innerHTML=`<input class="tninp" value="${esc(t.name)}" oninput="updTeamName(${i},this.value)"><button class="scb scb-m" onclick="changeScore(${i},-${pts})">−</button><span class="tscore">${t.score}</span><button class="scb scb-p" onclick="changeScore(${i},+${pts})">+</button><button class="scb scb-z" onclick="buzz(${i})" title="Buzz in">⚡</button><button class="scb" style="background:#333;color:var(--dim);font-size:.65rem" onclick="removeTeam(${i})">✕</button>`;
+    const r=document.createElement('div');r.className='gteam-row';
+    r.innerHTML=`<span class="gteam-name">${esc(t.name)}</span><span class="tscore">${t.score}</span><button class="scb scb-m" onclick="changeScore(${i},-${pts})">−</button><button class="scb scb-p" onclick="changeScore(${i},+${pts})">+</button><button class="scb scb-z" onclick="buzz(${i})">⚡</button>`;
     tg.appendChild(r);
-  });
-
-  // Plate list
-  const pl=el('c-plist');pl.innerHTML='';
-  GS.order.forEach((oi,li)=>{
-    const q=GAMES[GS.game][oi];
-    const it=document.createElement('div');
-    it.className='pitem'+(li===GS.idx?' act':'');
-    it.onclick=()=>jumpToPlate(li);
-    it.innerHTML=`<span class="dot ${DIFF_CLS2[q.d]}"></span><span class="pitxt">${q.p}</span><span class="pipts">${DIFF_PTS[q.d]}p</span>`;
-    pl.appendChild(it);
   });
 }
 
@@ -729,12 +712,14 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function el(id){return document.getElementById(id);}
 function show(id){
   ['d-waiting','d-lobby','d-game','d-gameover','c-waiting','c-setup','c-game'].forEach(x=>{
-    const e=el(x);if(e){e.style.display='none';e.classList.add('hidden');}
+    const e=el(x);if(e){e.style.display='none';e.style.flex='';e.classList.add('hidden');}
   });
   const e=el(id);if(e){
     e.classList.remove('hidden');
     e.style.display='flex';
     e.style.flexDirection='column';
+    // Control children fill remaining space inside fixed #control
+    if(['c-waiting','c-setup','c-game'].includes(id)){e.style.flex='1';e.style.overflow='hidden';}
   }
 }
 function confetti(){
@@ -777,3 +762,4 @@ window.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+           
